@@ -2,6 +2,8 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
 import { User } from '../modules/users/entities/user.entity';
 import { Otp } from '../modules/auth/entities/otp.entity';
+import { Course } from '../modules/courses/entities/course.entity';
+import { Topic } from '../modules/courses/entities/topic.entity';
 
 dotenv.config();
 
@@ -12,7 +14,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'study_connect_db',
-  entities: [User, Otp],
+  entities: [User, Otp, Course, Topic],
   migrations: ['dist/database/migrations/*.js'],
   synchronize: process.env.DB_SYNCHRONIZE === 'true' || process.env.NODE_ENV !== 'production',
   logging: process.env.DB_LOGGING === 'true',

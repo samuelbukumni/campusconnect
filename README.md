@@ -288,7 +288,43 @@ All endpoints are prefixed with `/api/v1`.
 
 ---
 
-### 3. Students / Users (`/api/v1/users`)
+### 3. Courses & Topics (`/api/v1/courses`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/v1/courses` | No | Browse all courses with available tutors and learners demand stats |
+| `GET` | `/api/v1/courses/search?q=integration` | No | Search by course code, title, or specific curriculum topic |
+| `GET` | `/api/v1/courses/:id` | No | View course details, full topic list, and verified peer tutors |
+| `POST` | `/api/v1/courses` | Yes (Bearer) | Register a new course (code, title, department, level) |
+| `POST` | `/api/v1/courses/:id/topics` | Yes (Bearer) | Add a syllabus topic to a course |
+| `POST` | `/api/v1/courses/seed` | No | Pre-populate catalog with 6 university courses & topics |
+
+#### Sample Search Response (`GET /api/v1/courses/search?q=Integration`):
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Operation successful",
+  "data": [
+    {
+      "id": "e93d5821-4f10-48e2-9b27-58b29f79b63a",
+      "code": "MTH 102",
+      "title": "Elementary Mathematics II (Calculus)",
+      "department": "Mathematics & Statistics",
+      "level": "100",
+      "description": "Differential and integral calculus, functions, limits, integration techniques.",
+      "topics": [
+        { "id": "t-1", "title": "Limits and Continuity", "difficulty": "BEGINNER" },
+        { "id": "t-2", "title": "Integration by Parts", "difficulty": "INTERMEDIATE" }
+      ],
+      "availableTutorsCount": 8,
+      "learnersSeekingHelpCount": 24
+    }
+  ],
+  "timestamp": "2026-10-22T05:50:00.000Z"
+}
+```
+
+### 4. Students / Users (`/api/v1/users`)
 | Method | Endpoint | Auth Required | Description |
 | :--- | :--- | :---: | :--- |
 | `GET` | `/api/v1/users` | Yes (Bearer) | Browse/filter tutors & learners (`?courseToTeach=MTH101`) |

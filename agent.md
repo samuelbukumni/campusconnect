@@ -97,9 +97,12 @@ Each feature module contains:
 - [x] Implemented `AuthModule` (Register, Login, JWT Strategy, Local Strategy, Auth Guards).
 - [x] Implemented Resend Email & OTP Verification Flow (6-digit generation, 10-minute expiry, 60s cooldown burst rate limit).
 - [x] Implemented `GET /api/v1/auth/me` returning authenticated session + complete student profile details.
-- [x] Scaffolded modular boundaries for upcoming domains (`courses`, `tutoring`, `partners`, `materials`, `reviews`, `attendance`, `reports`, `notifications`).
+- [x] Implemented `CoursesModule` (Course & Topic entities, repository, service, controller, DTOs, unit tests).
+- [x] Implemented granular topic-based search (`GET /api/v1/courses/search?q=...`) across course code, title, and syllabus topics.
+- [x] Implemented real-time tutor demand metrics (`availableTutorsCount` vs `learnersSeekingHelpCount`) per course.
+- [x] Implemented course catalog seed endpoint (`POST /api/v1/courses/seed`).
+- [x] Scaffolded modular boundaries for upcoming domains (`tutoring`, `partners`, `materials`, `reviews`, `attendance`, `reports`, `notifications`).
 - [x] Prepared comprehensive, beginner-friendly `README.md` with file map.
 - [x] Generated official PDF PRD & Technical Spec at `StudyConnect_Backend_PRD_Technical_Spec.pdf`.
 - [ ] Database credentials connection testing and initial migration run.
-- [ ] Implement Course & Topic catalog with search and tutor count metrics.
 - [ ] Implement Tutoring Session booking and scheduling.
