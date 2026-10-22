@@ -1,16 +1,20 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Review } from './entities/review.entity';
+import { ReviewsRepository } from './repositories/reviews.repository';
+import { ReviewsService } from './services/reviews.service';
+import { ReviewsController } from './controllers/reviews.controller';
+import { TutoringModule } from '../tutoring/tutoring.module';
+import { UsersModule } from '../users/users.module';
 
-/**
- * ReviewsModule
- * Handles:
- * - Tutor ratings (1 to 5 stars) and reviews
- * - Student testimonials from completed tutoring sessions
- * - Calculating tutor reputation score
- */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [
+    TypeOrmModule.forFeature([Review]),
+    TutoringModule,
+    UsersModule,
+  ],
+  controllers: [ReviewsController],
+  providers: [ReviewsRepository, ReviewsService],
+  exports: [ReviewsService, ReviewsRepository],
 })
 export class ReviewsModule {}
