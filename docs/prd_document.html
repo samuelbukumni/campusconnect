@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StudyConnect — Product Requirements Document (PRD) & Technical Specification</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 15mm 20mm 15mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.55;
+      font-size: 11pt;
+      margin: 0;
+      padding: 0;
+    }
+    .cover {
+      page-break-after: always;
+      padding-top: 60px;
+      text-align: center;
+    }
+    .cover h1 {
+      font-size: 28pt;
+      color: #1e3a8a;
+      margin-bottom: 8px;
+    }
+    .cover .subtitle {
+      font-size: 14pt;
+      color: #475569;
+      margin-bottom: 40px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 10pt;
+      margin-bottom: 24px;
+    }
+    .meta-box {
+      margin: 40px auto;
+      max-width: 450px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px 24px;
+      text-align: left;
+      background: #f8fafc;
+      font-size: 10pt;
+    }
+    .meta-box table {
+      width: 100%;
+    }
+    .meta-box td {
+      padding: 4px 0;
+    }
+    .meta-box td.label {
+      font-weight: 600;
+      color: #64748b;
+      width: 140px;
+    }
+    h2 {
+      font-size: 16pt;
+      color: #1e3a8a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 32px;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12.5pt;
+      color: #0f172a;
+      margin-top: 20px;
+      margin-bottom: 6px;
+      page-break-after: avoid;
+    }
+    h4 {
+      font-size: 11pt;
+      color: #334155;
+      margin-top: 14px;
+      margin-bottom: 4px;
+      page-break-after: avoid;
+    }
+    p, li {
+      color: #334155;
+    }
+    ul, ol {
+      padding-left: 20px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    table.data-table th, table.data-table td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    table.data-table th {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+    }
+    table.data-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 9.5pt;
+      line-height: 1.4;
+      white-space: pre;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+    .feature-card {
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+    .feature-card h3 {
+      margin-top: 0;
+      color: #1e3a8a;
+    }
+    .tech-pill {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      font-family: monospace;
+    }
+    .note-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 10px 14px;
+      margin: 14px 0;
+      font-size: 10pt;
+      color: #1e40af;
+      border-radius: 0 4px 4px 0;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER PAGE -->
+  <div class="cover">
+    <div class="badge">PROJECT REQUIREMENTS & TECHNICAL SPECIFICATION</div>
+    <h1>StudyConnect API</h1>
+    <div class="subtitle">The Peer-to-Peer Student Tutoring & Academic Collaboration Platform</div>
+
+    <div class="meta-box">
+      <table>
+        <tr><td class="label">Document Version:</td><td>1.0 (Production & Defense Ready)</td></tr>
+        <tr><td class="label">Application Stack:</td><td>NestJS, PostgreSQL, TypeORM, Redis, Resend</td></tr>
+        <tr><td class="label">Target Platform:</td><td>Render.com Cloud Hosting</td></tr>
+        <tr><td class="label">Project Scope:</td><td>Full Academic Tutoring & Resource Sharing Backend</td></tr>
+        <tr><td class="label">Date:</td><td>October 2026</td></tr>
+      </table>
+    </div>
+
+    <p style="margin-top: 80px; color: #64748b; font-size: 10pt;">
+      Prepared for Development Team, Academic Supervisors, and Technical Defense Panel.
+    </p>
+  </div>
+
+  <!-- SECTION 1 -->
+  <h2>1. Executive Summary & Problem Statement</h2>
+  <p>
+    <strong>1.1 Problem Statement:</strong> In university environments, students often struggle with specific difficult courses or topics (such as Calculus in <em>MTH 102</em> or Data Structures in <em>CSC 201</em>). Simultaneously, talented peer students who have mastered these subjects are willing to assist their peers but lack a structured, safe, and organized campus platform to schedule sessions, share verified study materials, or track tutorial attendance.
+  </p>
+  <p>
+    <strong>1.2 The Solution:</strong> <strong>StudyConnect</strong> bridges this academic gap through a dual-role peer-to-peer system. A student does not have to be solely a "tutor" or a "learner". They can offer tutoring in subjects they excel at while simultaneously receiving academic support in subjects they find challenging.
+  </p>
+  <p>
+    <strong>1.3 Core Pillars:</strong>
+  </p>
+  <ul>
+    <li><strong>Dual-Role Onboarding:</strong> Seamless registration with university email, department, level, and course selections.</li>
+    <li><strong>1-on-1 & Group Tutoring Sessions:</strong> Scheduled physical meetups at verified campus locations or online Google Meet calls.</li>
+    <li><strong>Course & Topic Search:</strong> Instant catalog search connecting students by specific curriculum topics.</li>
+    <li><strong>Study Partner Matching & Reshuffle:</strong> Automatic pairing of classmates with mutual study goals and schedule availability.</li>
+    <li><strong>Attendance & Accountability:</strong> Session confirmation and tracking to foster consistent study habits.</li>
+    <li><strong>Academic Material Sharing:</strong> Upload and download past examination questions, lecture notes, and study summaries.</li>
+    <li><strong>Trust & Safety:</strong> University email verification via OTP, 1-to-5 star ratings, testimonials, and conduct reporting.</li>
+  </ul>
+
+  <!-- SECTION 2 -->
+  <div class="page-break"></div>
+  <h2>2. Architectural Pattern: The 5-Layer Backend Flow</h2>
+  <p>
+    To ensure every team member understands how a request flows through the backend (and can clearly explain it during project defense), the application follows a strict 5-layer separation of concerns:
+  </p>
+
+  <div class="diagram-box">
+[ CLIENT (Web Browser / Mobile App) ]
+         │ (HTTP Request with JSON payload & optional Bearer JWT)
+         ▼
+[ 1. CONTROLLER LAYER ] (src/modules/*/controllers/*.controller.ts)
+   • Listens on HTTP endpoints (GET, POST, PATCH, DELETE)
+   • Enforces DTO validation via class-validator (strips invalid fields)
+   • Applies authentication guards (@UseGuards(JwtAuthGuard))
+         │
+         ▼
+[ 2. SERVICE LAYER ] (src/modules/*/services/*.service.ts)
+   • Houses all business logic and calculations
+   • Hashes passwords with bcryptjs
+   • Triggers OTP generation and Resend email dispatches
+   • Calculates rating averages and attendance counters
+         │
+         ▼
+[ 3. REPOSITORY LAYER ] (src/modules/*/repositories/*.repository.ts)
+   • Abstraction for database queries
+   • Isolates complex SQL / query builders from business logic
+         │
+         ▼
+[ 4. TYPEORM ENTITY / SCHEMA LAYER ] (src/modules/*/entities/*.entity.ts)
+   • TypeScript classes decorated with @Entity(), @Column(), @ManyToOne()
+   • Represents the strict structure of our tables in code
+         │
+         ▼
+[ 5. POSTGRESQL DATABASE ] (Hosted on Render.com)
+   • Permanent, relational ACID-compliant data storage
+  </div>
+
+  <h3>Why This 5-Layer Pattern Matters:</h3>
+  <ul>
+    <li><strong>Controllers</strong> never write SQL. They only accept requests and return responses.</li>
+    <li><strong>Services</strong> never know about HTTP headers or status codes. They focus strictly on business logic.</li>
+    <li><strong>TypeORM Entities</strong> define the schema in TypeScript, preventing discrepancies between code and database.</li>
+    <li><strong>PostgreSQL</strong> guarantees relational integrity using foreign keys and cascading rules.</li>
+  </ul>
+
+  <!-- SECTION 3 -->
+  <div class="page-break"></div>
+  <h2>3. Technology Choices & Architectural Justification</h2>
+  <p>
+    Every technology in the StudyConnect stack was selected for reliability, team collaboration speed, and academic defensibility:
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 18%;">Technology</th>
+        <th style="width: 27%;">What It Is</th>
+        <th style="width: 30%;">Why It Was Picked Over Alternatives</th>
+        <th style="width: 25%;">Real-Time Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>NestJS (TypeScript)</strong></td>
+        <td>Enterprise Node.js web framework.</td>
+        <td>Plain Express gives zero structure, causing displaced files in multi-developer teams. NestJS enforces modular architecture.</td>
+        <td>Each module (Auth, Users, Courses, Tutoring) has its own self-contained folder.</td>
+      </tr>
+      <tr>
+        <td><strong>PostgreSQL</strong></td>
+        <td>Relational SQL database.</td>
+        <td>Selected over MongoDB because students, courses, bookings, and reviews are strictly relational. Foreign keys prevent orphan records.</td>
+        <td>100% data integrity; impossible to book a session for a non-existent student or course.</td>
+      </tr>
+      <tr>
+        <td><strong>TypeORM</strong></td>
+        <td>Object-Relational Mapper (ORM).</td>
+        <td>Translates TypeScript entity classes directly into PostgreSQL tables, eliminating manual SQL string errors.</td>
+        <td>Automatic schema synchronization in development; clean migrations for production.</td>
+      </tr>
+      <tr>
+        <td><strong>Redis</strong></td>
+        <td>In-memory data structure store.</td>
+        <td>Storing temporary 10-minute OTP codes and rate-limiting counters in PostgreSQL wastes disk I/O. Redis keeps them in RAM.</td>
+        <td>Sub-millisecond (&lt; 1ms) response times for rate-limiting checks and OTP verification.</td>
+      </tr>
+      <tr>
+        <td><strong>Resend</strong></td>
+        <td>Modern email delivery API.</td>
+        <td>Provides 3,000 free emails/month, requires zero server setup, and sends transactional verification emails via a 3-line SDK call.</td>
+        <td>Instant OTP code delivery to student inboxes without maintenance headaches.</td>
+      </tr>
+      <tr>
+        <td><strong>Bcryptjs</strong></td>
+        <td>Password hashing library.</td>
+        <td>Pure JavaScript implementation. Native C++ bcrypt fails to compile on many Windows student machines. Bcryptjs works everywhere.</td>
+        <td>Secure, salt-based one-way password hashing across all operating systems.</td>
+      </tr>
+      <tr>
+        <td><strong>Swagger (OpenAPI)</strong></td>
+        <td>Interactive API documentation.</td>
+        <td>Auto-generates a live web playground at <code>/docs</code> from TypeScript code, eliminating manual Postman exports.</td>
+        <td>Beginners and frontend engineers can test endpoints directly in their web browser.</td>
+      </tr>
+      <tr>
+        <td><strong>Render.com</strong></td>
+        <td>Cloud hosting platform.</td>
+        <td>Free managed PostgreSQL database and Node.js web services with direct Git integration.</td>
+        <td>Zero-cost production deployment with automatic redeployment on git push.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 4 -->
+  <div class="page-break"></div>
+  <h2>4. Detailed Feature Specifications & Technical Realization</h2>
+
+  <div class="feature-card">
+    <h3>Feature 1: Student Authentication & Resend OTP Verification</h3>
+    <p><strong>Functional Experience:</strong> Students register with their email, password, full name, department, level, and pick their role (<em>TUTOR</em>, <em>LEARNER</em>, or <em>BOTH</em>). An unverified account is created and a 6-digit OTP code (valid for 10 minutes) is sent to their email via <strong>Resend</strong>. A 60-second cooldown prevents spamming. Once verified, a JWT token is issued.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/auth/register</span> ➔ Validates body via <code>RegisterDto</code>, hashes password with <code>bcryptjs</code> (cost 10), saves User with <code>isVerified: false</code>.</li>
+      <li><span class="tech-pill">POST /api/v1/auth/verify-otp</span> ➔ Compares submitted OTP against Redis key <code>otp:{email}</code>. On match, sets <code>isVerified: true</code> and returns JWT Bearer token.</li>
+      <li><span class="tech-pill">POST /api/v1/auth/resend-otp</span> ➔ Rate-limited to 1 request per 60s per IP. Throws <code>429 Too Many Requests</code> if spammed.</li>
+      <li><span class="tech-pill">POST /api/v1/auth/login</span> ➔ Validates credentials via <code>LocalStrategy</code>, returns access token.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 2: Student Profiles & Dual-Role Attributes</h3>
+    <p><strong>Functional Experience:</strong> Students view and update their profile. They can list course codes they are proficient in teaching (e.g. <code>["CSC201", "MTH101"]</code>) and course codes where they need tutoring (e.g. <code>["PHY102"]</code>), plus bio and contact details.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">GET /api/v1/users/profile/me</span> ➔ Reads authenticated user from JWT payload via <code>@CurrentUser()</code> decorator.</li>
+      <li><span class="tech-pill">PATCH /api/v1/users/profile/me</span> ➔ Updates <code>coursesToTeach</code>, <code>coursesNeedingHelp</code>, <code>bio</code>, and <code>avatarUrl</code>.</li>
+      <li><span class="tech-pill">GET /api/v1/users/:id</span> ➔ Returns public profile with average rating, review count, and session totals.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 3: Course Catalog & Topic-Based Search</h3>
+    <p><strong>Functional Experience:</strong> A student searching <em>"Integration"</em> or <em>"MTH 102"</em> receives matching courses, curriculum topics, and available student tutors.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">GET /api/v1/courses</span> ➔ Lists registered courses with curriculum topic breakdown.</li>
+      <li><span class="tech-pill">GET /api/v1/courses/search?q=Integration</span> ➔ Queries <code>courses</code> and <code>topics</code> using PostgreSQL case-insensitive <code>ILIKE</code> matching.</li>
+      <li><strong>Standard SQL Counting:</strong> Returns real-time counts of available tutors and learners seeking help per course using indexed SQL aggregation.</li>
+    </ul>
+  </div>
+
+  <div class="page-break"></div>
+
+  <div class="feature-card">
+    <h3>Feature 4: 1-on-1 and Group Tutoring Sessions & Campus Meetups</h3>
+    <p><strong>Functional Experience:</strong> Students arrange tutorial sessions by selecting date, time, duration, session type (1-on-1 or group max 5), and a meetup venue (e.g., <em>"Main Library Room 4"</em> or a Google Meet URL).</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/tutoring/sessions</span> ➔ Creates session with initial status <code>SCHEDULED</code>. Links tutor and learner IDs.</li>
+      <li><span class="tech-pill">GET /api/v1/tutoring/my-sessions</span> ➔ Returns upcoming and past sessions for the logged-in student.</li>
+      <li><span class="tech-pill">PATCH /api/v1/tutoring/sessions/:id/cancel</span> ➔ Cancels session with reason logging.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 5: Study Partner Matching & Reshuffling</h3>
+    <p><strong>Functional Experience:</strong> Students find a reading partner based on common courses and study schedules. If a partner becomes inactive or unavailable, the student can click <em>"Reshuffle"</em> to be paired with another peer.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/partners/match</span> ➔ Queries learners sharing the same course codes in <code>coursesNeedingHelp</code>.</li>
+      <li><span class="tech-pill">POST /api/v1/partners/:matchId/reshuffle</span> ➔ Marks existing pairing <code>RESHUFFLED</code> and queries the next best available partner.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 6: Attendance Tracking & Verification</h3>
+    <p><strong>Functional Experience:</strong> When a tutoring session concludes, the tutor marks attendance. The learner's attended count increments and the session is marked completed.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/attendance/:sessionId/verify</span> ➔ Tutor marks attendance. Sets <code>attended: true</code> in <code>session_participants</code>.</li>
+      <li>Increments <code>totalSessionsGiven</code> on the tutor profile and <code>totalSessionsAttended</code> on the learner profile inside a database transaction.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 7: Tutor Ratings & Reviews</h3>
+    <p><strong>Functional Experience:</strong> Learners rate their tutor from 1 to 5 stars and write a testimonial. The tutor's public rating recalculates automatically.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/reviews</span> ➔ Stores review with <code>rating</code> (1–5) and <code>comment</code>. Only allowed if session attendance was verified.</li>
+      <li>Updates tutor's running average <code>rating = SUM(stars) / reviewCount</code>.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 8: Academic Material Sharing Hub</h3>
+    <p><strong>Functional Experience:</strong> Students upload and download PDF lecture notes, past questions, and formula summaries tagged by course code. Max size 10MB.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/materials/upload</span> ➔ Validates MIME types (strictly PDF, PNG, JPG, DOCX). Stores files securely in <code>uploads/materials</code>.</li>
+      <li><span class="tech-pill">GET /api/v1/materials?courseCode=MTH102</span> ➔ Lists materials for download with download counters.</li>
+    </ul>
+  </div>
+
+  <div class="feature-card">
+    <h3>Feature 9: Student Safety & Conduct Reporting</h3>
+    <p><strong>Functional Experience:</strong> Students can report inappropriate behavior or missed meetups with a single click.</p>
+    <p><strong>Technical Realization:</strong></p>
+    <ul>
+      <li><span class="tech-pill">POST /api/v1/reports</span> ➔ Creates moderation report with reporter ID, reported ID, reason, and description.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="page-break"></div>
+  <h2>5. Database Schema & Data Dictionary</h2>
+  <p>All database tables inherit from <code>BaseEntity</code>, providing <code>id</code> (UUID primary key), <code>createdAt</code>, and <code>updatedAt</code>.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Table Name</th>
+        <th>Primary & Foreign Keys</th>
+        <th>Key Attributes</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>users</strong></td>
+        <td><code>id</code> (PK, UUID)</td>
+        <td><code>email</code>, <code>password</code>, <code>firstName</code>, <code>lastName</code>, <code>role</code>, <code>department</code>, <code>level</code>, <code>coursesToTeach</code>, <code>coursesNeedingHelp</code>, <code>rating</code>, <code>isVerified</code></td>
+        <td>Stores all student credentials, profile details, and tutoring preferences.</td>
+      </tr>
+      <tr>
+        <td><strong>courses</strong></td>
+        <td><code>id</code> (PK, UUID)</td>
+        <td><code>code</code> (e.g. MTH102), <code>title</code>, <code>department</code>, <code>level</code></td>
+        <td>Official university course catalog.</td>
+      </tr>
+      <tr>
+        <td><strong>topics</strong></td>
+        <td><code>id</code> (PK), <code>courseId</code> (FK)</td>
+        <td><code>title</code> (e.g. Integration), <code>difficulty</code></td>
+        <td>Specific topics taught under each course.</td>
+      </tr>
+      <tr>
+        <td><strong>tutoring_sessions</strong></td>
+        <td><code>id</code> (PK), <code>tutorId</code> (FK), <code>courseId</code> (FK)</td>
+        <td><code>sessionType</code>, <code>locationVenue</code>, <code>meetingUrl</code>, <code>scheduledAt</code>, <code>durationMinutes</code>, <code>status</code></td>
+        <td>Booked 1-on-1 and group tutorial sessions.</td>
+      </tr>
+      <tr>
+        <td><strong>session_participants</strong></td>
+        <td><code>id</code> (PK), <code>sessionId</code> (FK), <code>learnerId</code> (FK)</td>
+        <td><code>attended</code> (Boolean), <code>feedback</code></td>
+        <td>Tracks learners enrolled in and attending a tutorial.</td>
+      </tr>
+      <tr>
+        <td><strong>study_partner_matches</strong></td>
+        <td><code>id</code> (PK), <code>studentAId</code> (FK), <code>studentBId</code> (FK)</td>
+        <td><code>courseId</code> (FK), <code>status</code> (ACTIVE / RESHUFFLED)</td>
+        <td>Matched peer reading and study partners.</td>
+      </tr>
+      <tr>
+        <td><strong>materials</strong></td>
+        <td><code>id</code> (PK), <code>uploaderId</code> (FK), <code>courseId</code> (FK)</td>
+        <td><code>title</code>, <code>fileUrl</code>, <code>fileType</code> (PAST_QUESTION, NOTES), <code>downloadsCount</code></td>
+        <td>Shared study resources, notes, and previous exams.</td>
+      </tr>
+      <tr>
+        <td><strong>reviews</strong></td>
+        <td><code>id</code> (PK), <code>sessionId</code> (FK), <code>tutorId</code> (FK)</td>
+        <td><code>rating</code> (1–5), <code>testimonial</code></td>
+        <td>Student feedback and tutor reputation records.</td>
+      </tr>
+      <tr>
+        <td><strong>reports</strong></td>
+        <td><code>id</code> (PK), <code>reporterId</code> (FK), <code>reportedUserId</code> (FK)</td>
+        <td><code>reason</code>, <code>description</code>, <code>status</code> (PENDING, RESOLVED)</td>
+        <td>Campus safety and moderation complaints.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 6 -->
+  <div class="page-break"></div>
+  <h2>6. Security, Rate Limiting & Response Architecture</h2>
+
+  <h3>6.1 Uniform API Response Envelope</h3>
+  <p>All successful HTTP responses are wrapped automatically by <code>TransformInterceptor</code>:</p>
+  <div class="diagram-box">
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Operation successful",
+  "data": { ... },
+  "timestamp": "2026-10-22T04:30:00.000Z"
+}
+  </div>
+
+  <h3>6.2 Centralized Exception Handling</h3>
+  <p>All errors (validation failures, 404s, 401s, 429s) are formatted uniformly by <code>AllExceptionsFilter</code>:</p>
+  <div class="diagram-box">
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Password must be at least 6 characters long",
+  "path": "/api/v1/auth/register",
+  "timestamp": "2026-10-22T04:30:00.000Z"
+}
+  </div>
+
+  <h3>6.3 Rate Limiting Rules (Throttler + Redis)</h3>
+  <ul>
+    <li><strong>OTP Request Burst Limit:</strong> Max 1 request per 60 seconds per IP (prevents spamming student inboxes).</li>
+    <li><strong>Login Brute-Force Limit:</strong> Max 5 attempts per 15 minutes per IP.</li>
+    <li><strong>General API Limit:</strong> Max 100 requests per minute per IP.</li>
+  </ul>
+
+  <!-- SECTION 7 -->
+  <h2>7. DevOps & Render.com Cloud Deployment Guide</h2>
+  <p>To deploy the StudyConnect backend live for evaluation, follow these exact steps on <strong>Render.com</strong>:</p>
+
+  <ol>
+    <li><strong>Create PostgreSQL Database on Render:</strong>
+      <ul>
+        <li>Log in to <a href="https://render.com">render.com</a> ➔ Click <strong>New +</strong> ➔ <strong>PostgreSQL</strong>.</li>
+        <li>Name: <code>study-connect-db</code> ➔ Select Free Plan.</li>
+        <li>Copy the <strong>Internal Database URL</strong> (or Host, Port, User, Password).</li>
+      </ul>
+    </li>
+    <li><strong>Create Web Service on Render:</strong>
+      <ul>
+        <li>Click <strong>New +</strong> ➔ <strong>Web Service</strong> ➔ Connect your GitHub repository.</li>
+        <li>Runtime: <strong>Node</strong>.</li>
+        <li>Build Command: <code>npm install && npm run build</code></li>
+        <li>Start Command: <code>npm run start:prod</code></li>
+      </ul>
+    </li>
+    <li><strong>Configure Environment Variables in Render Dashboard:</strong>
+      <ul>
+        <li><code>NODE_ENV</code> = <code>production</code></li>
+        <li><code>PORT</code> = <code>3000</code></li>
+        <li><code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_USERNAME</code>, <code>DB_PASSWORD</code>, <code>DB_DATABASE</code> (From Render Postgres)</li>
+        <li><code>JWT_SECRET</code> = <em>(Secure random 64-char string)</em></li>
+        <li><code>RESEND_API_KEY</code> = <code>re_...</code> (From Resend.com dashboard)</li>
+      </ul>
+    </li>
+    <li><strong>Verify Deployment:</strong>
+      <ul>
+        <li>Visit <code>https://your-service.onrender.com/api/v1/health</code> ➔ Returns <code>{"status": "healthy"}</code>.</li>
+        <li>Visit <code>https://your-service.onrender.com/docs</code> ➔ Interactive Swagger Documentation is live!</li>
+      </ul>
+    </li>
+  </ol>
+
+  <div class="note-box">
+    <strong>Final Delivery Note:</strong> This document represents the complete, defensible product and technical specification for the StudyConnect backend. All features are modularized to facilitate individual team member comprehension during project defense.
+  </div>
+
+</body>
+</html>
