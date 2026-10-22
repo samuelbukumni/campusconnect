@@ -227,12 +227,14 @@ All endpoints are prefixed with `/api/v1`.
 ### 1. Health Check
 - **`GET /api/v1/health`** — Public status endpoint.
 
-### 2. Authentication (`/api/v1/auth`)
+### 2. Authentication & Verification (`/api/v1/auth`)
 | Method | Endpoint | Auth Required | Description |
 | :--- | :--- | :---: | :--- |
-| `POST` | `/api/v1/auth/register` | No | Register a new student (Tutor, Learner, or Both) |
-| `POST` | `/api/v1/auth/login` | No | Log in with email & password, receives JWT token |
-| `GET` | `/api/v1/auth/me` | Yes (Bearer) | Get current authenticated user session |
+| `POST` | `/api/v1/auth/register` | No | Register a new student (Tutor, Learner, or Both) & dispatch 6-digit OTP |
+| `POST` | `/api/v1/auth/verify-otp` | No | Verify 6-digit OTP code, activate account, and receive JWT token |
+| `POST` | `/api/v1/auth/resend-otp` | No | Resend fresh 6-digit OTP (rate-limited with 60-second cooldown) |
+| `POST` | `/api/v1/auth/login` | No | Log in with email & password (checks verification status, receives JWT) |
+| `GET` | `/api/v1/auth/me` | Yes (Bearer) | Get current student session with full profile details |
 
 #### Sample Registration Payload (`POST /api/v1/auth/register`):
 ```json
@@ -252,11 +254,11 @@ All endpoints are prefixed with `/api/v1`.
 }
 ```
 
-#### Sample Response:
+#### Sample Verification & Profile Response (`POST /api/v1/auth/verify-otp` or `GET /api/v1/auth/me`):
 ```json
 {
   "success": true,
-  "statusCode": 201,
+  "statusCode": 200,
   "message": "Operation successful",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsIn...",
@@ -266,12 +268,21 @@ All endpoints are prefixed with `/api/v1`.
       "email": "student@university.edu",
       "firstName": "Alex",
       "lastName": "Johnson",
+      "matricNumber": "ENG/2023/045",
+      "department": "Electrical Engineering",
+      "level": "300",
       "role": "BOTH",
+      "bio": "Excelling in Circuit Theory (EEE301), looking for help in Engineering Mathematics (MTH301).",
       "coursesToTeach": ["EEE201", "EEE301"],
-      "coursesNeedingHelp": ["MTH301"]
+      "coursesNeedingHelp": ["MTH301"],
+      "rating": 4.85,
+      "reviewCount": 12,
+      "totalSessionsGiven": 14,
+      "totalSessionsAttended": 6,
+      "isVerified": true
     }
   },
-  "timestamp": "2026-10-22T03:30:00.000Z"
+  "timestamp": "2026-10-22T05:30:00.000Z"
 }
 ```
 

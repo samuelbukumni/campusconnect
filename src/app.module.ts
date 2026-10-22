@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 import { appConfig } from './config/app.config';
 import { databaseConfig } from './config/database.config';
@@ -32,6 +33,14 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       load: [appConfig, databaseConfig, jwtConfig],
       envFilePath: ['.env'],
     }),
+
+    // Rate Limiting (Throttler)
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 30, // 30 requests per minute default across endpoints
+      },
+    ]),
 
     // Database Connection via TypeORM
     TypeOrmModule.forRootAsync({
@@ -72,6 +81,10 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
