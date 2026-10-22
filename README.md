@@ -29,15 +29,17 @@ In academic institutions, many students encounter difficulty grasping specific t
 ### How CampusConnect Solves This
 1. **Dual Student Role**: A student isn't just a learner or a tutor — they can tutor courses they understand while receiving tutoring in courses they find challenging.
 2. **One-on-One & Group Tutorials**: Book study sessions with clear locations (library, campus hub, online) and scheduled times.
-3. **Study & Reading Partners**: Find peers with similar study schedules and goals.
-4. **Academic Material Hub**: Share lecture summaries, previous exam questions, and solutions.
-5. **Trust & Quality**: Peer reviews, 1-to-5 star ratings, attendance records, and student verification.
+3. **Study & Reading Partners**: Find peers with similar study schedules, courses, and goals with reshuffling support.
+4. **Academic Material Hub**: Share lecture summaries, previous exam questions, solutions, and track downloads.
+5. **Trust & Quality**: Peer reviews, 1-to-5 star ratings, testimonials, and verified student profiles.
+6. **Student Safety**: Disciplinary reporting for misconduct, scams, or no-shows with admin resolution.
+7. **In-App Notifications**: Real-time alerts for booking confirmations, partner matches, reviews, and materials.
 
 ---
 
 ## 🗂 Where to Find What (Project File Map)
 
-To make it easy for everyone on the team (especially beginners) to find their way around, every single concern is isolated in its own dedicated folder. Nothing is displaced.
+Every single concern is isolated in its own dedicated modular folder:
 
 ```text
 Study-connect-Backend/
@@ -74,12 +76,11 @@ Study-connect-Backend/
         ├── users/                   # 👤 Student profiles, roles, and courses
         ├── courses/                 # 📚 Course & topic catalog, search, demand stats
         ├── tutoring/                # 🤝 1-on-1 & group sessions, scheduling, pairing
-        ├── partners/                # 👥 Study & reading partner matching
+        ├── partners/                # 👥 Study & reading partner matching & reshuffling
         ├── materials/               # 📁 Shared notes, summaries, and past questions
-        ├── reviews/                 # ⭐ Tutor ratings & testimonials
-        ├── attendance/              # 📋 Tutorial attendance tracking
+        ├── reviews/                 # ⭐ Tutor ratings, stats & testimonials
         ├── reports/                 # 🛡️ Safety & inappropriate conduct reporting
-        └── notifications/           # 🔔 Reminders & session alerts
+        └── notifications/           # 🔔 In-app student alerts & reminders
 ```
 
 ---
@@ -89,8 +90,8 @@ Study-connect-Backend/
 We use **PostgreSQL** as the relational database and **TypeORM** as the Object-Relational Mapper (ORM).
 
 ### How Schema Management Works:
-1. **Modular Domain Entities:** Each module defines the database tables it owns inside its own `entities/` folder (e.g. `User`, `Otp`, `Course`, `Topic`).
-2. **Centralized Data Source:** `src/database/data-source.ts` registers all entities and provides the database connection for both the running NestJS app and TypeORM CLI.
+1. **Modular Domain Entities:** Each module defines the database tables it owns inside its own `entities/` folder (e.g. `User`, `Otp`, `Course`, `Topic`, `TutoringSession`, `StudyPartnerMatch`, `Material`, `Review`, `Report`, `Notification`).
+2. **Centralized Data Source:** `src/database/data-source.ts` registers all 11 entities and provides the database connection for both the running NestJS app and TypeORM CLI migrations.
 3. **Automatic Synchronization in Development:** In `.env`, `DB_SYNCHRONIZE=true` automatically updates PostgreSQL tables when you edit entities during local development.
 
 ---
@@ -128,6 +129,7 @@ DB_DATABASE=study_connect_db
 DB_SYNCHRONIZE=true
 JWT_SECRET=super_secret_jwt_key_study_connect_2026
 RESEND_API_KEY=re_your_api_key_here
+MAIL_FROM=onboarding@resend.dev
 ```
 
 ---
@@ -142,6 +144,14 @@ You will see:
 [Bootstrap] StudyConnect API is running on: http://localhost:3000/api/v1
 [Bootstrap] Swagger API Docs available at: http://localhost:3000/docs
 ```
+
+---
+
+### Step 4: Run the Test Suite
+```bash
+npm test
+```
+*(All 9 test suites and 40 unit test assertions run in band and pass cleanly).*
 
 ---
 
@@ -173,7 +183,15 @@ All endpoints are versioned with the `/api/v1` prefix.
 | `POST` | `/api/v1/auth/login` | Public | Authenticate verified student & receive JWT |
 | `GET` | `/api/v1/auth/me` | Bearer JWT | Current student session with full profile details |
 
-### 3. Courses & Topics Catalog (`/api/v1/courses`)
+### 3. Students & Profiles (`/api/v1/users`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/v1/users` | Bearer JWT | Browse/filter student tutors & learners |
+| `GET` | `/api/v1/users/profile/me` | Bearer JWT | View current user profile |
+| `PATCH`| `/api/v1/users/profile/me` | Bearer JWT | Update profile, bio, or courses |
+| `GET` | `/api/v1/users/:id` | Bearer JWT | View any student's public profile and stats |
+
+### 4. Courses & Topics Catalog (`/api/v1/courses`)
 | Method | Endpoint | Auth | Description |
 | :--- | :--- | :---: | :--- |
 | `GET` | `/api/v1/courses` | Public | Browse all courses with live tutor & learner demand counts |
@@ -183,13 +201,53 @@ All endpoints are versioned with the `/api/v1` prefix.
 | `POST` | `/api/v1/courses/:id/topics` | Bearer JWT | Add a syllabus topic to a course |
 | `POST` | `/api/v1/courses/seed` | Public | Seed 6 standard university courses & topics for testing |
 
-### 4. Students & Profiles (`/api/v1/users`)
+### 5. Tutoring Sessions & Bookings (`/api/v1/tutoring`)
 | Method | Endpoint | Auth | Description |
 | :--- | :--- | :---: | :--- |
-| `GET` | `/api/v1/users` | Bearer JWT | Browse/filter student tutors & learners |
-| `GET` | `/api/v1/users/profile/me` | Bearer JWT | View current user profile |
-| `PATCH`| `/api/v1/users/profile/me` | Bearer JWT | Update profile, bio, or courses |
-| `GET` | `/api/v1/users/:id` | Bearer JWT | View any student's public profile and stats |
+| `POST` | `/api/v1/tutoring/book` | Bearer JWT | Book a 1-on-1 or group session (location, time, course) |
+| `POST` | `/api/v1/tutoring/:id/join` | Bearer JWT | Join an open group tutoring session |
+| `GET` | `/api/v1/tutoring/my-sessions` | Bearer JWT | List sessions where user is tutor or learner |
+| `GET` | `/api/v1/tutoring/group/open` | Bearer JWT | List open upcoming group sessions (optional course filter) |
+| `GET` | `/api/v1/tutoring/:id` | Bearer JWT | View full session details & attendees |
+| `PATCH`| `/api/v1/tutoring/:id/status` | Bearer JWT | Update session status (`CONFIRMED`, `COMPLETED`, `CANCELLED`) |
+
+### 6. Study Partners Matching (`/api/v1/partners`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/partners/match` | Bearer JWT | Request a peer study partner for a course |
+| `GET` | `/api/v1/partners/my-partners` | Bearer JWT | List all active and past study partner pairings |
+| `POST` | `/api/v1/partners/:id/reshuffle` | Bearer JWT | Reshuffle match if incompatible & find new peer |
+
+### 7. Academic Materials Hub (`/api/v1/materials`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/materials` | Bearer JWT | Upload lecture notes, slides, or past question metadata |
+| `GET` | `/api/v1/materials` | Public | Browse and filter materials by course, topic, or keyword |
+| `GET` | `/api/v1/materials/:id` | Public | View material details |
+| `POST` | `/api/v1/materials/:id/download` | Public | Record download count & retrieve file link |
+| `DELETE`| `/api/v1/materials/:id` | Bearer JWT | Delete material (uploader or admin only) |
+
+### 8. Reviews & Ratings (`/api/v1/reviews`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/reviews` | Bearer JWT | Submit 1-5 star review and testimonial for completed session |
+| `GET` | `/api/v1/reviews/tutor/:tutorId` | Public | View all reviews, ratings, and testimonials for a tutor |
+
+### 9. Safety & Disciplinary Reports (`/api/v1/reports`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/reports` | Bearer JWT | Submit safety or misconduct report against a user/session |
+| `GET` | `/api/v1/reports/my-reports` | Bearer JWT | View reports submitted by current student |
+| `GET` | `/api/v1/reports` | Admin JWT | View all incident reports across campus |
+| `PATCH`| `/api/v1/reports/:id/status` | Admin JWT | Update resolution status (`INVESTIGATING`, `RESOLVED`, `DISMISSED`) |
+
+### 10. In-App Notifications (`/api/v1/notifications`)
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/v1/notifications` | Bearer JWT | Retrieve student notifications (optional `unreadOnly=true`) |
+| `GET` | `/api/v1/notifications/unread-count` | Bearer JWT | Get badge counter of unread notifications |
+| `PATCH`| `/api/v1/notifications/:id/read` | Bearer JWT | Mark a single notification as read |
+| `PATCH`| `/api/v1/notifications/read-all` | Bearer JWT | Mark all student notifications as read |
 
 ---
 
@@ -203,7 +261,7 @@ All endpoints are versioned with the `/api/v1` prefix.
 ### Commit Types:
 * **`feat:`** A new feature (e.g. `feat(auth): implement student registration and JWT login`)
 * **`fix:`** A bug fix (e.g. `fix(courses): correct topic search matching logic`)
-* **`docs:`** Documentation changes (e.g. `docs(readme): add Render deployment phase`)
+* **`docs:`** Documentation changes (e.g. `docs(readme): update API reference and Render deployment guide`)
 * **`refactor:`** Code restructuring without changing behavior
 * **`test:`** Adding or updating unit tests (e.g. `test(courses): add search unit test`)
 * **`chore:`** Dependency updates, build configs
@@ -220,19 +278,21 @@ All endpoints are versioned with the `/api/v1` prefix.
   * Course catalog & topic search (e.g. MTH 102 ➔ Integration).
   * High-demand metrics (count of learners needing help vs available tutors).
   * Pre-populated catalog seed endpoint.
-* [ ] **Phase 3: Tutoring Sessions & Scheduling** (In Progress ⏳)
+* [x] **Phase 3: Tutoring Sessions & Scheduling** (Completed ✅)
   * 1-on-1 and group tutorial booking.
   * Campus physical meetup points & Google Meet scheduling.
   * Session status lifecycle (`SCHEDULED` ➔ `CONFIRMED` ➔ `COMPLETED` ➔ `CANCELLED`).
-* [ ] **Phase 4: Study Partners & Communities**
-  * Reading partner matching by learning goals and schedules.
-  * Course-specific community discussion boards.
-* [ ] **Phase 5: Academic Materials & Resources**
-  * File uploads for lecture notes, summaries, and past questions (max 10MB).
-* [ ] **Phase 6: Reviews, Attendance & Trust**
-  * 1-to-5 star ratings, student testimonials, tutorial attendance check-ins.
-  * Safety reporting and conduct review.
-* [ ] **Phase 7: Cloud Deployment on Render.com**
+* [x] **Phase 4: Study Partners & Reshuffling** (Completed ✅)
+  * Peer study partner matching algorithm based on course requirements and meetup preferences.
+  * Partner reshuffling when schedules or goals are incompatible.
+* [x] **Phase 5: Academic Materials & Resources** (Completed ✅)
+  * Resource sharing for lecture notes, past exam questions, slides, lab reports.
+  * Keyword search, syllabus topic filtering, and download tracking.
+* [x] **Phase 6: Reviews, Safety & Notifications** (Completed ✅)
+  * 1-to-5 star ratings, testimonials, and automatic recalculation of tutor ratings.
+  * Disciplinary reporting for misconduct, scams, and no-shows with admin resolution.
+  * Real-time in-app notification badge and alert system.
+* [ ] **Phase 7: Cloud Deployment on Render.com** (Ready to Deploy 🚀)
   * Free managed PostgreSQL instance & Node.js Web Service on Render.
 
 ---

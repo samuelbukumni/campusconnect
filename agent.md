@@ -6,6 +6,7 @@
 - **GitHub Repository:** `https://github.com/samuelbukumni/campusconnect` (Active remote: `origin/main`)
 - **Team Dynamics:** Team of 10 to 12 members; 4 to 5 members are complete beginners with zero backend experience. Supervisor will individually examine each member during project defense. All architecture and explanations must be plain-language defensible without intimidating jargon.
 - **Email Service Choice:** Resend (locked in).
+- **Attendance Feature:** Permanently dropped / removed per team instruction.
 - **Counting Strategy:** Standard indexed relational SQL COUNT() (chosen for data integrity, zero sync bugs, and defensibility before academic supervisors).
 - **PRD Document:** Exported as PDF at `StudyConnect_Backend_PRD_Technical_Spec.pdf` and markdown at `PRD_TECHNICAL_SPEC.md`.
 
@@ -23,7 +24,8 @@
 4. **Strict Conventional Git Commits:**
    - Format: `<type>(<scope>): <short description>`
    - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`.
-   - Examples: `feat(auth): implement student registration and JWT login`, `docs(readme): add architecture file map and quickstart guide`.
+5. **No Pushing Rule:**
+   - NEVER push to GitHub without the user explicitly typing "push".
 
 ---
 
@@ -38,57 +40,25 @@ src/
     ├── auth/           # Authentication domain (DTOs, guards, strategies, service, controller, tests)
     ├── users/          # Student profiles, roles, repository, service, controller, tests
     ├── courses/        # Courses, topics, search & tutor availability metrics
-    ├── tutoring/       # 1-on-1 and group sessions, scheduling, pairing & reshuffling
-    ├── partners/       # Study & reading partner matching
-    ├── materials/      # Academic resource sharing (notes, past questions, summaries)
-    ├── reviews/        # Tutor ratings (1-5 stars), testimonials, reputation
-    ├── attendance/     # Attendance tracking & verification
-    ├── reports/        # Conduct reporting & safety guidelines
-    └── notifications/  # Reminders & session alerts
+    ├── tutoring/       # 1-on-1 and group sessions, scheduling, joining, status lifecycle
+    ├── partners/       # Study & reading partner matching and reshuffling
+    ├── materials/      # Academic resource sharing (notes, past questions, download counters)
+    ├── reviews/        # Tutor ratings (1-5 stars), testimonials, reputation recalculation
+    ├── reports/        # Conduct reporting & safety guidelines with admin resolution
+    └── notifications/  # In-app student alerts & reminders
 ```
 
 Each feature module contains:
 - `controllers/` - HTTP request handlers and Swagger decorators
 - `services/` - Business logic and transactions
 - `dto/` - Input validation schemas (`class-validator`)
-- `entities/` - TypeORM database models (or in `database/entities` if shared)
-- `repositories/` - Custom data access methods (where applicable)
+- `entities/` - TypeORM database models
+- `repositories/` - Data access methods
 - `tests/` - Unit tests (`.spec.ts`)
 
 ---
 
-## 4. Database Schema Strategy (PostgreSQL + TypeORM)
-### How Database Schemas Are Managed:
-- **Shared Base Entity:** All tables inherit `BaseEntity` (`id` as UUID, `createdAt`, `updatedAt`).
-- **Domain Co-located Entities:** Each module defines its domain entities (e.g., `User` in `src/modules/users/entities/user.entity.ts`).
-- **Centralized Data Source:** `src/database/data-source.ts` connects TypeORM CLI and NestJS app runtime to PostgreSQL.
-- **Migration Pipeline:** `npm run migration:generate` and `npm run migration:run` ensure schema changes are safe and reproducible across the team.
-
-### Implemented Schema:
-- **`users` Table:**
-  - `id`: UUID (PK)
-  - `email`: VARCHAR(255) UNIQUE
-  - `password`: VARCHAR(255) (Hashed bcrypt, hidden by default)
-  - `firstName`, `lastName`: VARCHAR(100)
-  - `matricNumber`: VARCHAR(50)
-  - `department`: VARCHAR(150)
-  - `level`: VARCHAR(50) (e.g. 100, 200, 300, 400, 500)
-  - `role`: ENUM ('LEARNER', 'TUTOR', 'BOTH', 'ADMIN')
-  - `bio`: TEXT
-  - `avatarUrl`, `phoneNumber`: VARCHAR
-  - `coursesToTeach`: TEXT[]
-  - `coursesNeedingHelp`: TEXT[]
-  - `rating`: DECIMAL(3,2)
-  - `reviewCount`: INT
-  - `totalSessionsGiven`: INT
-  - `totalSessionsAttended`: INT
-  - `isVerified`: BOOLEAN
-  - `isActive`: BOOLEAN
-  - `createdAt`, `updatedAt`: TIMESTAMPTZ
-
----
-
-## 5. Current Implementation Progress
+## 4. Current Implementation Progress
 - [x] Initialized NestJS architecture with strict TypeScript config.
 - [x] Configured TypeORM with PostgreSQL connection and environment validation.
 - [x] Implemented global `TransformInterceptor` (unified JSON API format).
@@ -102,8 +72,14 @@ Each feature module contains:
 - [x] Implemented granular topic-based search (`GET /api/v1/courses/search?q=...`) across course code, title, and syllabus topics.
 - [x] Implemented real-time tutor demand metrics (`availableTutorsCount` vs `learnersSeekingHelpCount`) per course.
 - [x] Implemented course catalog seed endpoint (`POST /api/v1/courses/seed`).
-- [x] Scaffolded modular boundaries for upcoming domains (`tutoring`, `partners`, `materials`, `reviews`, `attendance`, `reports`, `notifications`).
-- [x] Prepared comprehensive, beginner-friendly `README.md` with file map.
-- [x] Generated official PDF PRD & Technical Spec at `StudyConnect_Backend_PRD_Technical_Spec.pdf`.
-- [ ] Database credentials connection testing and initial migration run.
-- [ ] Implement Tutoring Session booking and scheduling.
+- [x] Removed attendance tracking permanently per team specification.
+- [x] Implemented `TutoringModule` (1-on-1, group sessions, booking, joining, status transitions, unit tests).
+- [x] Implemented `PartnersModule` (peer study matching, reshuffle logic, unit tests).
+- [x] Implemented `MaterialsModule` (lecture notes/past questions, keyword search, download tracking, unit tests).
+- [x] Implemented `ReviewsModule` (1-5 star reviews, testimonials, auto tutor rating recalculation, unit tests).
+- [x] Implemented `ReportsModule` (misconduct/safety reporting, admin status resolution, unit tests).
+- [x] Implemented `NotificationsModule` (in-app alerts, unread counts, mark as read, unit tests).
+- [x] Registered all 11 entities in `src/database/data-source.ts`.
+- [x] Full unit test suite passing (9 test suites, 40 unit test assertions).
+- [x] Production build clean (`nest build` exits 0 with zero errors).
+- [x] Prepared streamlined `README.md` with Render Phase 7 deployment guide.
