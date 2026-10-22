@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Notification } from './entities/notification.entity';
+import { NotificationsRepository } from './repositories/notifications.repository';
+import { NotificationsService } from './services/notifications.service';
+import { NotificationsController } from './controllers/notifications.controller';
 
-/**
- * NotificationsModule
- * Handles:
- * - Alerts for upcoming tutorials and scheduled meetups
- * - Reminders when a study partner match or session request occurs
- * - Schedule updates and cancellations
- */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [TypeOrmModule.forFeature([Notification])],
+  controllers: [NotificationsController],
+  providers: [NotificationsRepository, NotificationsService],
+  exports: [NotificationsService, NotificationsRepository],
 })
 export class NotificationsModule {}
