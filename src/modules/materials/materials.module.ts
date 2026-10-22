@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Material } from './entities/material.entity';
+import { MaterialsRepository } from './repositories/materials.repository';
+import { MaterialsService } from './services/materials.service';
+import { MaterialsController } from './controllers/materials.controller';
+import { CoursesModule } from '../courses/courses.module';
 
-/**
- * MaterialsModule
- * Handles:
- * - Academic material uploads (lecture notes, past questions, summaries)
- * - Material categorization by course and department
- * - Resource downloads and sharing
- */
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [TypeOrmModule.forFeature([Material]), CoursesModule],
+  controllers: [MaterialsController],
+  providers: [MaterialsRepository, MaterialsService],
+  exports: [MaterialsService, MaterialsRepository],
 })
 export class MaterialsModule {}
