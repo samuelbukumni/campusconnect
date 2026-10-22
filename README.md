@@ -1,32 +1,33 @@
-# 🎓 CampusConnect — Peer Tutoring Backend API
+# 🎓 CampusConnect — Peer Tutoring & Academic Collaboration Platform
 
 [![GitHub Repository](https://img.shields.io/badge/GitHub-campusconnect-blue?logo=github)](https://github.com/samuelbukumni/campusconnect)
 
-Welcome to the backend repository of **StudyConnect**, a peer-to-peer academic platform designed to connect students who need academic assistance with fellow students who excel in those subjects.
+Welcome to the backend repository of **CampusConnect**, a peer-to-peer academic platform designed to connect students who need academic assistance with fellow students who excel in those subjects.
 
-Built with **NestJS**, **TypeORM**, and **PostgreSQL**.
+Built with **NestJS**, **TypeORM**, **PostgreSQL**, **Redis**, and **Resend**.
 
 ---
 
 ## 📖 Table of Contents
 1. [Project Overview & Problem Statement](#-project-overview--problem-statement)
-2. [How the Application Works](#-how-the-application-works)
-3. [Where to Find What (Project File Map)](#-where-to-find-what-project-file-map)
-4. [Database & Schema Architecture](#-database--schema-architecture)
-5. [Getting Started (Quick Setup Guide)](#-getting-started-quick-setup-guide)
-6. [API Endpoints Overview & Testing](#-api-endpoints-overview--testing)
+2. [Where to Find What (Project File Map)](#-where-to-find-what-project-file-map)
+3. [Database & Schema Architecture](#-database--schema-architecture)
+4. [Getting Started (Quick Setup Guide)](#-getting-started-quick-setup-guide)
+5. [Interactive Swagger API Documentation](#-interactive-swagger-api-documentation)
+6. [API Endpoints Reference](#-api-endpoints-reference)
 7. [Git Conventions for the Team](#-git-conventions-for-the-team)
-8. [Roadmap & Upcoming Features](#-roadmap--upcoming-features)
+8. [Roadmap & Development Phases](#-roadmap--development-phases)
+9. [Phase 7: Cloud Deployment on Render.com](#-phase-7-cloud-deployment-on-rendercom)
 
 ---
 
 ## 🌟 Project Overview & Problem Statement
 
 ### The Problem
-In academic institutions, many students encounter difficulty grasping specific topics (e.g. Calculus in `MTH101` or Data Structures in `CSC201`). At the same time, many peers have mastered these exact subjects and are ready to help, but there is no structured campus platform to match them, schedule sessions, share past questions/notes, or verify accountability.
+In academic institutions, many students encounter difficulty grasping specific topics (e.g. Calculus in `MTH 102` or Data Structures in `CSC 201`). At the same time, many peers have mastered these exact subjects and are ready to help, but there is no structured campus platform to match them, schedule sessions, share past questions/notes, or verify accountability.
 
-### How StudyConnect Solves This
-1. **Dual Student Role**: A student isn't just a learner or a tutor — they can tutor courses they understand while receiving tutoring in courses they find tough.
+### How CampusConnect Solves This
+1. **Dual Student Role**: A student isn't just a learner or a tutor — they can tutor courses they understand while receiving tutoring in courses they find challenging.
 2. **One-on-One & Group Tutorials**: Book study sessions with clear locations (library, campus hub, online) and scheduled times.
 3. **Study & Reading Partners**: Find peers with similar study schedules and goals.
 4. **Academic Material Hub**: Share lecture summaries, previous exam questions, and solutions.
@@ -42,6 +43,7 @@ To make it easy for everyone on the team (especially beginners) to find their wa
 Study-connect-Backend/
 ├── .env.example                     # Sample environment variables (Copy to .env)
 ├── agent.md                         # Agent memory & technical decisions log
+├── PRD_TECHNICAL_SPEC.md            # Complete Product & Technical Specification
 ├── README.md                        # This project guide
 ├── nest-cli.json                    # NestJS CLI configuration
 ├── package.json                     # Dependencies and npm scripts
@@ -54,22 +56,13 @@ Study-connect-Backend/
     ├── app.service.ts               # Root service
     │
     ├── common/                      # Reusable helpers used across all modules
-    │   ├── decorators/              # Custom decorators
-    │   │   ├── current-user.decorator.ts  # Extracts logged-in user from request (@CurrentUser())
-    │   │   └── public.decorator.ts        # Marks endpoints public from auth (@Public())
-    │   ├── filters/                 # Error handling
-    │   │   └── http-exception.filter.ts   # Formats all errors into a uniform JSON response
-    │   ├── guards/                  # Route guards
-    │   │   └── jwt-auth.guard.ts          # Protects routes requiring valid JWT token
-    │   ├── interceptors/            # Response transformers
-    │   │   └── transform.interceptor.ts   # Wraps all successful responses into standard format
-    │   └── interfaces/              # Shared TypeScript interfaces
-    │       └── api-response.interface.ts  # Standard ApiResponse<T> contract
+    │   ├── decorators/              # Custom decorators (@CurrentUser(), @Public())
+    │   ├── filters/                 # Error handling (AllExceptionsFilter)
+    │   ├── guards/                  # Route guards (JwtAuthGuard)
+    │   ├── interceptors/            # Response transformers (TransformInterceptor)
+    │   └── interfaces/              # Shared TypeScript interfaces (ApiResponse<T>)
     │
-    ├── config/                      # Typed configuration loaders
-    │   ├── app.config.ts            # Port, API prefix, environment mode
-    │   ├── database.config.ts       # PostgreSQL connection credentials
-    │   └── jwt.config.ts            # JWT secrets and token expiration
+    ├── config/                      # Typed configuration loaders (app, database, jwt)
     │
     ├── database/                    # Database setup
     │   ├── base.entity.ts           # Base model (provides id as UUID, createdAt, updatedAt)
@@ -77,42 +70,9 @@ Study-connect-Backend/
     │   └── migrations/              # Database migration SQL files
     │
     └── modules/                     # Business domain modules
-        ├── auth/                    # 🔐 AUTHENTICATION DOMAIN
-        │   ├── controllers/         # POST /auth/register, POST /auth/login, GET /auth/me
-        │   │   └── auth.controller.ts
-        │   ├── dto/                 # Input validators
-        │   │   ├── auth-response.dto.ts
-        │   │   ├── login.dto.ts
-        │   │   └── register.dto.ts
-        │   ├── guards/              # Local auth guard for login
-        │   │   └── local-auth.guard.ts
-        │   ├── services/            # Password hashing, JWT token signing, credential validation
-        │   │   └── auth.service.ts
-        │   ├── strategies/          # Passport strategies (JWT & Local)
-        │   │   ├── jwt.strategy.ts
-        │   │   └── local.strategy.ts
-        │   ├── tests/               # Unit tests
-        │   │   └── auth.service.spec.ts
-        │   └── auth.module.ts
-        │
-        ├── users/                   # 👤 USERS & STUDENT PROFILES
-        │   ├── controllers/         # GET /users (search), GET/PATCH /users/profile/me
-        │   │   └── users.controller.ts
-        │   ├── dto/                 # User validation schemas
-        │   │   ├── create-user.dto.ts
-        │   │   ├── update-user.dto.ts
-        │   │   └── user-profile.dto.ts
-        │   ├── entities/            # Database schema for users table
-        │   │   └── user.entity.ts
-        │   ├── repositories/        # Custom database queries for users
-        │   │   └── users.repository.ts
-        │   ├── services/            # User creation, profile updates, tutor search logic
-        │   │   └── users.service.ts
-        │   ├── tests/               # Unit tests
-        │   │   └── users.service.spec.ts
-        │   └── users.module.ts
-        │
-        ├── courses/                 # 📚 Courses & topics catalog, search, demand stats
+        ├── auth/                    # 🔐 Registration, Login, Resend OTP & JWT
+        ├── users/                   # 👤 Student profiles, roles, and courses
+        ├── courses/                 # 📚 Course & topic catalog, search, demand stats
         ├── tutoring/                # 🤝 1-on-1 & group sessions, scheduling, pairing
         ├── partners/                # 👥 Study & reading partner matching
         ├── materials/               # 📁 Shared notes, summaries, and past questions
@@ -129,47 +89,25 @@ Study-connect-Backend/
 We use **PostgreSQL** as the relational database and **TypeORM** as the Object-Relational Mapper (ORM).
 
 ### How Schema Management Works:
-1. **Modular Domain Entities:** Each module defines the database tables it owns inside its own `entities/` folder (e.g., `src/modules/users/entities/user.entity.ts`).
+1. **Modular Domain Entities:** Each module defines the database tables it owns inside its own `entities/` folder (e.g. `User`, `Otp`, `Course`, `Topic`).
 2. **Centralized Data Source:** `src/database/data-source.ts` registers all entities and provides the database connection for both the running NestJS app and TypeORM CLI.
-3. **Automatic Synchronization in Development:** In `.env`, `DB_SYNCHRONIZE=true` automatically updates PostgreSQL tables when you edit entities during local development. For production, TypeORM migrations in `src/database/migrations/` are used.
-
-### The `users` Table Schema:
-| Column | Type | Description |
-| :--- | :--- | :--- |
-| `id` | UUID (PK) | Unique student identifier |
-| `email` | VARCHAR (Unique) | University or student email |
-| `password` | VARCHAR | Hashed password (Bcrypt, never exposed in JSON) |
-| `firstName`, `lastName` | VARCHAR | Student's full name |
-| `matricNumber` | VARCHAR | Student matriculation / ID number |
-| `department` | VARCHAR | Major/Department (e.g., Computer Science, Engineering) |
-| `level` | VARCHAR | Academic level (e.g., `100`, `200`, `300`, `400`, `500`) |
-| `role` | ENUM | `'LEARNER'`, `'TUTOR'`, `'BOTH'`, `'ADMIN'` |
-| `bio` | TEXT | Short profile introduction |
-| `coursesToTeach` | TEXT[] | Course codes the student can tutor (e.g. `["CSC201", "MTH101"]`) |
-| `coursesNeedingHelp`| TEXT[] | Course codes where the student needs assistance |
-| `rating` | DECIMAL | Average tutor rating (0.00 to 5.00) |
-| `reviewCount` | INT | Number of student reviews received |
-| `totalSessionsGiven`| INT | Total tutoring sessions taught |
-| `totalSessionsAttended`| INT | Total tutoring sessions attended as a learner |
-| `isVerified` | BOOLEAN | Student university verification status |
-| `createdAt`, `updatedAt`| TIMESTAMPTZ | Timestamps |
+3. **Automatic Synchronization in Development:** In `.env`, `DB_SYNCHRONIZE=true` automatically updates PostgreSQL tables when you edit entities during local development.
 
 ---
 
 ## 🚀 Getting Started (Quick Setup Guide)
 
 ### Prerequisites
-Make sure you have installed on your computer:
-1. **Node.js** (v20 or newer recommended): Check with `node -v`
+1. **Node.js** (v20+): Check with `node -v`
 2. **PostgreSQL 16**: Ensure PostgreSQL is running on your machine.
 
 ---
 
 ### Step 1: Install Dependencies
-Open your terminal in the project directory and run:
 ```bash
 npm install
 ```
+*(Or `corepack pnpm install`)*
 
 ---
 
@@ -178,35 +116,28 @@ Copy `.env.example` to create your local `.env` file:
 ```bash
 cp .env.example .env
 ```
-Open `.env` and verify your PostgreSQL credentials:
+Ensure your database credentials match your local PostgreSQL:
 ```env
 PORT=3000
 API_PREFIX=api/v1
-
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=your_postgres_password
+DB_PASSWORD=your_password
 DB_DATABASE=study_connect_db
 DB_SYNCHRONIZE=true
-
 JWT_SECRET=super_secret_jwt_key_study_connect_2026
-JWT_EXPIRATION=7d
+RESEND_API_KEY=re_your_api_key_here
 ```
-
-> **Note:** If `study_connect_db` does not exist in your PostgreSQL yet, create it using pgAdmin or the PostgreSQL terminal:
-> ```sql
-> CREATE DATABASE study_connect_db;
-> ```
 
 ---
 
 ### Step 3: Run the Application in Development Mode
-Start the live-reloading development server:
 ```bash
 npm run start:dev
 ```
-You will see output similar to:
+
+You will see:
 ```text
 [Bootstrap] StudyConnect API is running on: http://localhost:3000/api/v1
 [Bootstrap] Swagger API Docs available at: http://localhost:3000/docs
@@ -214,131 +145,55 @@ You will see output similar to:
 
 ---
 
-### Step 4: Explore the Interactive Swagger API Docs
-Open your browser and navigate to:
+## 📖 Interactive Swagger API Documentation
+
+All request payloads, response schemas, and parameter validations are documented interactively in Swagger:
+
 👉 **`http://localhost:3000/docs`**
 
-Here you can test all endpoints (Register, Login, View Profile, Search Tutors) directly from your browser without needing Postman!
+You can test every endpoint directly from your browser without using Postman.
 
 ---
 
-## 📡 API Endpoints Overview & Testing
+## 📡 API Endpoints Reference
 
-All endpoints are prefixed with `/api/v1`.
+All endpoints are versioned with the `/api/v1` prefix.
 
-### 1. Health Check
-- **`GET /api/v1/health`** — Public status endpoint.
+### 1. Health Status
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/v1/health` | Public | System health check |
 
 ### 2. Authentication & Verification (`/api/v1/auth`)
-| Method | Endpoint | Auth Required | Description |
+| Method | Endpoint | Auth | Description |
 | :--- | :--- | :---: | :--- |
-| `POST` | `/api/v1/auth/register` | No | Register a new student (Tutor, Learner, or Both) & dispatch 6-digit OTP |
-| `POST` | `/api/v1/auth/verify-otp` | No | Verify 6-digit OTP code, activate account, and receive JWT token |
-| `POST` | `/api/v1/auth/resend-otp` | No | Resend fresh 6-digit OTP (rate-limited with 60-second cooldown) |
-| `POST` | `/api/v1/auth/login` | No | Log in with email & password (checks verification status, receives JWT) |
-| `GET` | `/api/v1/auth/me` | Yes (Bearer) | Get current student session with full profile details |
+| `POST` | `/api/v1/auth/register` | Public | Register new student & send 6-digit OTP via Resend |
+| `POST` | `/api/v1/auth/verify-otp` | Public | Verify 6-digit OTP code, activate account & receive JWT |
+| `POST` | `/api/v1/auth/resend-otp` | Public | Resend OTP (rate-limited with 60-second cooldown) |
+| `POST` | `/api/v1/auth/login` | Public | Authenticate verified student & receive JWT |
+| `GET` | `/api/v1/auth/me` | Bearer JWT | Current student session with full profile details |
 
-#### Sample Registration Payload (`POST /api/v1/auth/register`):
-```json
-{
-  "email": "student@university.edu",
-  "password": "SecurePassword123!",
-  "firstName": "Alex",
-  "lastName": "Johnson",
-  "matricNumber": "ENG/2023/045",
-  "department": "Electrical Engineering",
-  "level": "300",
-  "role": "BOTH",
-  "bio": "Excelling in Circuit Theory (EEE301), looking for help in Engineering Mathematics (MTH301).",
-  "coursesToTeach": ["EEE201", "EEE301"],
-  "coursesNeedingHelp": ["MTH301"],
-  "phoneNumber": "+2348012345678"
-}
-```
-
-#### Sample Verification & Profile Response (`POST /api/v1/auth/verify-otp` or `GET /api/v1/auth/me`):
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Operation successful",
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsIn...",
-    "tokenType": "Bearer",
-    "user": {
-      "id": "673f8d2b-c8c7-43a9-b148-f62305367be2",
-      "email": "student@university.edu",
-      "firstName": "Alex",
-      "lastName": "Johnson",
-      "matricNumber": "ENG/2023/045",
-      "department": "Electrical Engineering",
-      "level": "300",
-      "role": "BOTH",
-      "bio": "Excelling in Circuit Theory (EEE301), looking for help in Engineering Mathematics (MTH301).",
-      "coursesToTeach": ["EEE201", "EEE301"],
-      "coursesNeedingHelp": ["MTH301"],
-      "rating": 4.85,
-      "reviewCount": 12,
-      "totalSessionsGiven": 14,
-      "totalSessionsAttended": 6,
-      "isVerified": true
-    }
-  },
-  "timestamp": "2026-10-22T05:30:00.000Z"
-}
-```
-
----
-
-### 3. Courses & Topics (`/api/v1/courses`)
-| Method | Endpoint | Auth Required | Description |
+### 3. Courses & Topics Catalog (`/api/v1/courses`)
+| Method | Endpoint | Auth | Description |
 | :--- | :--- | :---: | :--- |
-| `GET` | `/api/v1/courses` | No | Browse all courses with available tutors and learners demand stats |
-| `GET` | `/api/v1/courses/search?q=integration` | No | Search by course code, title, or specific curriculum topic |
-| `GET` | `/api/v1/courses/:id` | No | View course details, full topic list, and verified peer tutors |
-| `POST` | `/api/v1/courses` | Yes (Bearer) | Register a new course (code, title, department, level) |
-| `POST` | `/api/v1/courses/:id/topics` | Yes (Bearer) | Add a syllabus topic to a course |
-| `POST` | `/api/v1/courses/seed` | No | Pre-populate catalog with 6 university courses & topics |
+| `GET` | `/api/v1/courses` | Public | Browse all courses with live tutor & learner demand counts |
+| `GET` | `/api/v1/courses/search?q=integration` | Public | Search by course code, title, or syllabus topic |
+| `GET` | `/api/v1/courses/:id` | Public | View course details, curriculum topics, and verified peer tutors |
+| `POST` | `/api/v1/courses` | Bearer JWT | Register a new course (code, title, department, level) |
+| `POST` | `/api/v1/courses/:id/topics` | Bearer JWT | Add a syllabus topic to a course |
+| `POST` | `/api/v1/courses/seed` | Public | Seed 6 standard university courses & topics for testing |
 
-#### Sample Search Response (`GET /api/v1/courses/search?q=Integration`):
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Operation successful",
-  "data": [
-    {
-      "id": "e93d5821-4f10-48e2-9b27-58b29f79b63a",
-      "code": "MTH 102",
-      "title": "Elementary Mathematics II (Calculus)",
-      "department": "Mathematics & Statistics",
-      "level": "100",
-      "description": "Differential and integral calculus, functions, limits, integration techniques.",
-      "topics": [
-        { "id": "t-1", "title": "Limits and Continuity", "difficulty": "BEGINNER" },
-        { "id": "t-2", "title": "Integration by Parts", "difficulty": "INTERMEDIATE" }
-      ],
-      "availableTutorsCount": 8,
-      "learnersSeekingHelpCount": 24
-    }
-  ],
-  "timestamp": "2026-10-22T05:50:00.000Z"
-}
-```
-
-### 4. Students / Users (`/api/v1/users`)
-| Method | Endpoint | Auth Required | Description |
+### 4. Students & Profiles (`/api/v1/users`)
+| Method | Endpoint | Auth | Description |
 | :--- | :--- | :---: | :--- |
-| `GET` | `/api/v1/users` | Yes (Bearer) | Browse/filter tutors & learners (`?courseToTeach=MTH101`) |
-| `GET` | `/api/v1/users/profile/me` | Yes (Bearer) | View current user profile |
-| `PATCH`| `/api/v1/users/profile/me` | Yes (Bearer) | Update profile, bio, or courses |
-| `GET` | `/api/v1/users/:id` | Yes (Bearer) | View any student's public profile and stats |
+| `GET` | `/api/v1/users` | Bearer JWT | Browse/filter student tutors & learners |
+| `GET` | `/api/v1/users/profile/me` | Bearer JWT | View current user profile |
+| `PATCH`| `/api/v1/users/profile/me` | Bearer JWT | Update profile, bio, or courses |
+| `GET` | `/api/v1/users/:id` | Bearer JWT | View any student's public profile and stats |
 
 ---
 
 ## 🤝 Git Conventions for the Team
-
-Since we are working as a team of 6, maintaining clean Git commits makes code reviews effortless and ensures no one gets confused.
 
 ### Commit Message Format:
 ```text
@@ -346,37 +201,74 @@ Since we are working as a team of 6, maintaining clean Git commits makes code re
 ```
 
 ### Commit Types:
-- **`feat:`** A new feature (e.g. `feat(auth): implement student registration and JWT login`)
-- **`fix:`** A bug fix (e.g. `fix(users): correct course filter query logic`)
-- **`docs:`** Documentation changes (e.g. `docs(readme): add step-by-step setup guide`)
-- **`refactor:`** Code restructuring without changing behavior (e.g. `refactor(database): extract base entity`)
-- **`test:`** Adding or updating unit tests (e.g. `test(auth): add unit test for login service`)
-- **`chore:`** Dependency updates, build configs (e.g. `chore: configure tsconfig aliases`)
-
-### Branch Naming:
-- `feat/feature-name` (e.g. `feat/tutoring-sessions`)
-- `fix/bug-description` (e.g. `fix/jwt-expiration`)
+* **`feat:`** A new feature (e.g. `feat(auth): implement student registration and JWT login`)
+* **`fix:`** A bug fix (e.g. `fix(courses): correct topic search matching logic`)
+* **`docs:`** Documentation changes (e.g. `docs(readme): add Render deployment phase`)
+* **`refactor:`** Code restructuring without changing behavior
+* **`test:`** Adding or updating unit tests (e.g. `test(courses): add search unit test`)
+* **`chore:`** Dependency updates, build configs
 
 ---
 
-## 🗺 Roadmap & Upcoming Modules
+## 🗺 Roadmap & Development Phases
 
-- [x] **Phase 1: Foundation & Authentication** (Done)
-  - Project architecture, TypeORM setup, PostgreSQL config.
-  - JWT Authentication, Student Registration, User Profiles.
-  - Swagger documentation & unified error interceptors.
-- [ ] **Phase 2: Courses & Matching Engine**
-  - Course catalog & topic search (e.g. MTH102 -> Integration).
-  - High-demand course metrics (count of learners needing help vs available tutors).
-  - Random pairing and reshuffling algorithm.
-- [ ] **Phase 3: Tutoring Sessions & Scheduling**
-  - 1-on-1 and group tutorial booking.
-  - Meetup location scheduling (campus buildings/rooms or online links).
-- [ ] **Phase 4: Study Partners & Communities**
-  - Partner matching by learning goals and schedules.
-  - Course-specific community discussion boards.
-- [ ] **Phase 5: Academic Materials & Resources**
-  - File uploads for lecture notes, summaries, and past questions.
-- [ ] **Phase 6: Reviews, Attendance & Trust**
-  - Star ratings, student testimonials, tutorial attendance check-ins.
-  - Safety reporting and conduct review.
+* [x] **Phase 1: Foundation & Authentication** (Completed ✅)
+  * Project architecture, TypeORM setup, PostgreSQL config.
+  * JWT Authentication, Student Registration, Resend OTP Email Verification.
+  * Swagger documentation & unified error interceptors.
+* [x] **Phase 2: Courses & Topic Search Engine** (Completed ✅)
+  * Course catalog & topic search (e.g. MTH 102 ➔ Integration).
+  * High-demand metrics (count of learners needing help vs available tutors).
+  * Pre-populated catalog seed endpoint.
+* [ ] **Phase 3: Tutoring Sessions & Scheduling** (In Progress ⏳)
+  * 1-on-1 and group tutorial booking.
+  * Campus physical meetup points & Google Meet scheduling.
+  * Session status lifecycle (`SCHEDULED` ➔ `CONFIRMED` ➔ `COMPLETED` ➔ `CANCELLED`).
+* [ ] **Phase 4: Study Partners & Communities**
+  * Reading partner matching by learning goals and schedules.
+  * Course-specific community discussion boards.
+* [ ] **Phase 5: Academic Materials & Resources**
+  * File uploads for lecture notes, summaries, and past questions (max 10MB).
+* [ ] **Phase 6: Reviews, Attendance & Trust**
+  * 1-to-5 star ratings, student testimonials, tutorial attendance check-ins.
+  * Safety reporting and conduct review.
+* [ ] **Phase 7: Cloud Deployment on Render.com**
+  * Free managed PostgreSQL instance & Node.js Web Service on Render.
+
+---
+
+## ☁️ Phase 7: Cloud Deployment on Render.com
+
+Deploying the backend live on Render makes it available for testing and defense presentation:
+
+### Step 1: Create a Managed PostgreSQL Database on Render
+1. Go to [dashboard.render.com](https://dashboard.render.com/) and click **New +** ➔ **PostgreSQL**.
+2. Set the Name to `campusconnect-db` and select the **Free Plan**.
+3. Once created, copy the **Internal Database URL** (or individual credentials: Host, Port, User, Password, Database).
+
+### Step 2: Create a Web Service on Render
+1. Click **New +** ➔ **Web Service** and connect your GitHub repository (`samuelbukumni/campusconnect`).
+2. Configure settings:
+   * **Runtime:** `Node`
+   * **Build Command:** `npm install && npm run build`
+   * **Start Command:** `npm run start:prod`
+   * **Plan:** `Free`
+
+### Step 3: Add Environment Variables in Render Dashboard
+Under the **Environment** tab of your Render Web Service, add:
+* `NODE_ENV` = `production`
+* `PORT` = `3000`
+* `API_PREFIX` = `api/v1`
+* `DB_HOST` = *(From your Render PostgreSQL)*
+* `DB_PORT` = `5432`
+* `DB_USERNAME` = *(From your Render PostgreSQL)*
+* `DB_PASSWORD` = *(From your Render PostgreSQL)*
+* `DB_DATABASE` = *(From your Render PostgreSQL)*
+* `DB_SYNCHRONIZE` = `true`
+* `JWT_SECRET` = *(A secure random secret key)*
+* `RESEND_API_KEY` = *(Your Resend.com API Key)*
+* `MAIL_FROM` = `onboarding@resend.dev`
+
+### Step 4: Verify Live API
+* **Health Check:** `https://your-app.onrender.com/api/v1/health`
+* **Swagger Documentation:** `https://your-app.onrender.com/docs`
