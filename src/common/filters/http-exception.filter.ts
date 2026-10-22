@@ -18,7 +18,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let message: string | string[] = 'Internal server error';
     let errors: any = null;
 
     if (exception instanceof HttpException) {
@@ -33,13 +33,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       message = exception.message;
-      this.logger.error(`Unhandled error: ${exception.message}`, exception.stack);
+    }
+
+    const formattedMessage = Array.isArray(message) ? message[0] : message;
+
+    // Structured logging based on severity
+    if (status >= 500) {
+      this.logger.error(
+        `[${request.method}] ${request.url} - Status ${status} - Error: ${formattedMessage}`,
+        exception instanceof Error ? exception.stack : undefined,
+      );
+    } else {
+      this.logger.warn(
+        `[${request.method}] ${request.url} - Status ${status} - Client Error: ${formattedMessage}`,
+      );
     }
 
     response.status(status).json({
       success: false,
       statusCode: status,
-      message: Array.isArray(message) ? message[0] : message,
+      message: formattedMessage,
       errors: errors || undefined,
       path: request.url,
       timestamp: new Date().toISOString(),
