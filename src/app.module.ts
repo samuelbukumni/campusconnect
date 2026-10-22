@@ -21,7 +21,6 @@ import { TutoringModule } from './modules/tutoring/tutoring.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { MaterialsModule } from './modules/materials/materials.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
-import { AttendanceModule } from './modules/attendance/attendance.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
@@ -59,7 +58,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       inject: [ConfigService],
     }),
 
-    // Feature Modules
+    // Feature Modules (Attendance removed per team spec)
     AuthModule,
     UsersModule,
     CoursesModule,
@@ -67,7 +66,6 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     PartnersModule,
     MaterialsModule,
     ReviewsModule,
-    AttendanceModule,
     ReportsModule,
     NotificationsModule,
   ],

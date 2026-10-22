@@ -74,6 +74,12 @@ export class CoursesRepository {
     return this.topicRepo.save(topic);
   }
 
+  async findTopicById(id: string): Promise<Topic | null> {
+    return this.topicRepo.findOne({
+      where: { id },
+    });
+  }
+
   async countCourses(): Promise<number> {
     return this.courseRepo.count();
   }
