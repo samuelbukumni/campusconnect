@@ -1,4 +1,6 @@
-# 🎓 The Student Tutoring Application (StudyConnect) — Backend API
+# 🎓 CampusConnect — Peer Tutoring Backend API
+
+[![GitHub Repository](https://img.shields.io/badge/GitHub-campusconnect-blue?logo=github)](https://github.com/samuelbukumni/campusconnect)
 
 Welcome to the backend repository of **StudyConnect**, a peer-to-peer academic platform designed to connect students who need academic assistance with fellow students who excel in those subjects.
 

@@ -3,6 +3,7 @@
 ## 1. Project Mission & Context
 - **Project Name:** The Student Tutoring Application (StudyConnect) Backend
 - **Core Goal:** Peer-to-peer academic support platform connecting students who need help in challenging courses with peers who excel in those courses, plus study partner matching, academic resource sharing, and progress tracking.
+- **GitHub Repository:** `https://github.com/samuelbukumni/campusconnect` (Active remote: `origin/main`)
 - **Team Dynamics:** Team of 10 to 12 members; 4 to 5 members are complete beginners with zero backend experience. Supervisor will individually examine each member during project defense. All architecture and explanations must be plain-language defensible without intimidating jargon.
 - **Email Service Choice:** Resend (locked in).
 - **Counting Strategy:** Standard indexed relational SQL COUNT() (chosen for data integrity, zero sync bugs, and defensibility before academic supervisors).
