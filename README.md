@@ -1,5 +1,7 @@
 # 🎓 CampusConnect — Peer Tutoring & Academic Collaboration Platform
 
+Full documentation: https://github.com/samuelbukumni/campusconnect/wiki
+
 [![GitHub Repository](https://img.shields.io/badge/GitHub-campusconnect-blue?logo=github)](https://github.com/samuelbukumni/campusconnect)
 
 Welcome to the backend repository of **CampusConnect**, a peer-to-peer academic platform designed to connect students who need academic assistance with fellow students who excel in those subjects.
