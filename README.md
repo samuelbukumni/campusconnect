@@ -26,7 +26,7 @@ Built with **NestJS**, **TypeORM**, **PostgreSQL**, **Redis**, and **Resend**.
 ## 🌟 Project Overview & Problem Statement
 
 ### The Problem
-In academic institutions, many students encounter difficulty grasping specific topics (e.g. Calculus in `MTH 102` or Data Structures in `CSC 201`). At the same time, many peers have mastered these exact subjects and are ready to help, but there is no structured campus platform to match them, schedule sessions, share past questions/notes, or verify accountability.
+In academic institutions, many students encounter difficulty grasping specific topics (e.g. Calculus in `MTH 102` or Data Structures in `CSC 201`). At the same time, many peers have mastered these exact courses and are ready to help, but there is no structured campus platform to match them, schedule sessions, share past questions/notes, or verify accountability.
 
 ### How CampusConnect Solves This
 1. **Dual Student Role**: A student isn't just a learner or a tutor — they can tutor courses they understand while receiving tutoring in courses they find challenging.
