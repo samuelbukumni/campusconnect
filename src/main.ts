@@ -46,10 +46,18 @@ async function bootstrap() {
     }),
   );
 
-  // CORS configuration
+  // CORS configuration (allow all origins with credentials & preflight support)
   app.enableCors({
-    origin: configService.get<string>('app.corsOrigin') || '*',
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+    ],
   });
 
   // Swagger OpenAPI Documentation
