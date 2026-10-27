@@ -11,16 +11,26 @@ import { Material } from '../modules/materials/entities/material.entity';
 import { Review } from '../modules/reviews/entities/review.entity';
 import { Report } from '../modules/reports/entities/report.entity';
 import { Notification } from '../modules/notifications/entities/notification.entity';
+import { InitialSchema1730000000000 } from './migrations/1730000000000-InitialSchema';
 
 dotenv.config();
 
+const useSsl =
+  process.env.DB_SSL === 'true' ||
+  process.env.NODE_ENV === 'production' ||
+  (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost'));
+
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_DATABASE || 'study_connect_db',
+  ...(process.env.DATABASE_URL
+    ? { url: process.env.DATABASE_URL }
+    : {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432', 10),
+        username: process.env.DB_USERNAME || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        database: process.env.DB_DATABASE || 'study_connect_db',
+      }),
   entities: [
     User,
     Otp,
@@ -34,9 +44,11 @@ export const dataSourceOptions: DataSourceOptions = {
     Report,
     Notification,
   ],
-  migrations: ['dist/database/migrations/*.js'],
-  synchronize: process.env.DB_SYNCHRONIZE === 'true' || process.env.NODE_ENV !== 'production',
+  migrations: [InitialSchema1730000000000],
+  migrationsRun: true,
+  synchronize: false,
   logging: process.env.DB_LOGGING === 'true',
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
 };
 
 const AppDataSource = new DataSource(dataSourceOptions);

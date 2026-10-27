@@ -94,7 +94,7 @@ We use **PostgreSQL** as the relational database and **TypeORM** as the Object-R
 ### How Schema Management Works:
 1. **Modular Domain Entities:** Each module defines the database tables it owns inside its own `entities/` folder (e.g. `User`, `Otp`, `Course`, `Topic`, `TutoringSession`, `StudyPartnerMatch`, `Material`, `Review`, `Report`, `Notification`).
 2. **Centralized Data Source:** `src/database/data-source.ts` registers all 11 entities and provides the database connection for both the running NestJS app and TypeORM CLI migrations.
-3. **Automatic Synchronization in Development:** In `.env`, `DB_SYNCHRONIZE=true` automatically updates PostgreSQL tables when you edit entities during local development.
+3. **Automated Versioned Migrations:** Schema changes are managed via versioned migration files under src/database/migrations/. When the app boots locally or in cloud deployment (Render), pending migrations execute automatically on startup (migrationsRun: true), with synchronize: false permanently enforced for production data safety.
 
 ---
 
@@ -326,7 +326,7 @@ Under the **Environment** tab of your Render Web Service, add:
 * `DB_USERNAME` = *(From your Render PostgreSQL)*
 * `DB_PASSWORD` = *(From your Render PostgreSQL)*
 * `DB_DATABASE` = *(From your Render PostgreSQL)*
-* `DB_SYNCHRONIZE` = `true`
+* DATABASE_URL = *(From your Render PostgreSQL internal connection string, or set discrete DB_* variables below)*
 * `JWT_SECRET` = *(A secure random secret key)*
 * `RESEND_API_KEY` = *(Your Resend.com API Key)*
 * `MAIL_FROM` = `onboarding@resend.dev`

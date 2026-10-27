@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,6 +12,24 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port') || 3000;
   const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
+
+  // Automated Database Migration Check on Startup
+  try {
+    const dataSource = app.get(DataSource);
+    if (dataSource.isInitialized) {
+      logger.log('Database connected successfully. Running pending migrations...');
+      const executedMigrations = await dataSource.runMigrations();
+      if (executedMigrations.length > 0) {
+        logger.log(
+          `Successfully executed ${executedMigrations.length} migration(s): ${executedMigrations.map((m) => m.name).join(', ')}`,
+        );
+      } else {
+        logger.log('Database schema is up-to-date. No pending migrations.');
+      }
+    }
+  } catch (err: any) {
+    logger.error(`Database migration error on startup: ${err.message}`, err.stack);
+  }
 
   // Set global API route prefix
   app.setGlobalPrefix(apiPrefix);

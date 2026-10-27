@@ -11,6 +11,7 @@ import { jwtConfig } from './config/jwt.config';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
+import { InitialSchema1730000000000 } from './database/migrations/1730000000000-InitialSchema';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -45,17 +46,29 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     // Database Connection via TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('database.host'),
-        port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.username'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.database'),
-        autoLoadEntities: true,
-        synchronize: configService.get<boolean>('database.synchronize'),
-        logging: configService.get<boolean>('database.logging'),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const dbUrl = configService.get<string>('database.url');
+        const useSsl = configService.get('database.ssl');
+
+        return {
+          type: 'postgres',
+          ...(dbUrl
+            ? { url: dbUrl }
+            : {
+                host: configService.get<string>('database.host'),
+                port: configService.get<number>('database.port'),
+                username: configService.get<string>('database.username'),
+                password: configService.get<string>('database.password'),
+                database: configService.get<string>('database.database'),
+              }),
+          autoLoadEntities: true,
+          synchronize: false,
+          migrationsRun: true,
+          migrations: [InitialSchema1730000000000],
+          logging: configService.get<boolean>('database.logging'),
+          ssl: useSsl,
+        };
+      },
       inject: [ConfigService],
     }),
 
