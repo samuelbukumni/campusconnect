@@ -10,8 +10,11 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { VerifyOtpDto } from '../dto/verify-otp.dto';
 import { ResendOtpDto } from '../dto/resend-otp.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { User } from '../../users/entities/user.entity';
+import { OtpType } from '../entities/otp.entity';
 import { OtpService } from './otp.service';
 import { MailService } from './mail.service';
 
@@ -44,7 +47,7 @@ export class AuthService {
     const user = await this.usersService.create(registerDto);
 
     // 2. Generate and store 6-digit OTP
-    const otpCode = await this.otpService.generateOtp(user.email);
+    const otpCode = await this.otpService.generateOtp(user.email, OtpType.EMAIL_VERIFICATION);
 
     // 3. Dispatch OTP via Resend
     await this.mailService.sendVerificationOtp(user.email, otpCode, user.firstName);
@@ -58,22 +61,19 @@ export class AuthService {
   async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<AuthResponseDto> {
     const normalizedEmail = verifyOtpDto.email.toLowerCase().trim();
 
-    // 1. Validate OTP code
-    await this.otpService.verifyOtp(normalizedEmail, verifyOtpDto.code);
+    // 1. Verify OTP code against EMAIL_VERIFICATION type
+    await this.otpService.verifyOtp(normalizedEmail, verifyOtpDto.code, OtpType.EMAIL_VERIFICATION);
 
-    // 2. Mark student account as verified
+    // 2. Mark student as verified
     const user = await this.usersService.findByEmail(normalizedEmail);
     if (!user) {
-      throw new BadRequestException('Student profile not found');
+      throw new BadRequestException('Student account not found');
     }
 
-    const updatedUser = await this.usersService.update(user.id, {
-      ...user,
-    });
-    // Explicitly set isVerified to true in repository
+    await this.usersService.markVerified(user.id);
     user.isVerified = true;
-    await this.usersService.update(user.id, { role: user.role });
 
+    // 3. Generate JWT access token
     const token = this.generateToken(user);
 
     return {
@@ -85,10 +85,10 @@ export class AuthService {
 
   async resendOtp(resendOtpDto: ResendOtpDto): Promise<{ message: string }> {
     const normalizedEmail = resendOtpDto.email.toLowerCase().trim();
-    const user = await this.usersService.findByEmail(normalizedEmail);
 
+    const user = await this.usersService.findByEmail(normalizedEmail);
     if (!user) {
-      throw new BadRequestException('No student account found with this email address');
+      throw new BadRequestException('Student account not found');
     }
 
     if (user.isVerified) {
@@ -96,13 +96,50 @@ export class AuthService {
     }
 
     // Generate fresh OTP (automatically enforces 60s cooldown limit)
-    const otpCode = await this.otpService.generateOtp(normalizedEmail);
+    const otpCode = await this.otpService.generateOtp(normalizedEmail, OtpType.EMAIL_VERIFICATION);
 
     // Dispatch email
     await this.mailService.sendVerificationOtp(user.email, otpCode, user.firstName);
 
     return {
       message: 'A fresh 6-digit verification code has been sent to your email address.',
+    };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+    const normalizedEmail = forgotPasswordDto.email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(normalizedEmail);
+
+    if (user) {
+      // Generate OTP for password reset (enforces 60s cooldown limit)
+      const otpCode = await this.otpService.generateOtp(normalizedEmail, OtpType.PASSWORD_RESET);
+      await this.mailService.sendPasswordResetOtp(user.email, otpCode, user.firstName);
+    }
+
+    // Always return generic success message to prevent user enumeration
+    return {
+      message: 'If this email address is registered, a 6-digit password reset code has been sent.',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+    const normalizedEmail = resetPasswordDto.email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(normalizedEmail);
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired password reset request.');
+    }
+
+    // Verify OTP against PASSWORD_RESET type
+    await this.otpService.verifyOtp(normalizedEmail, resetPasswordDto.otp, OtpType.PASSWORD_RESET);
+
+    // Hash new password and update
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, salt);
+    await this.usersService.updatePassword(user.id, hashedPassword);
+
+    return {
+      message: 'Password reset successful! You can now log in with your new password.',
     };
   }
 
@@ -149,6 +186,7 @@ export class AuthService {
       matricNumber: user.matricNumber,
       department: user.department,
       level: user.level,
+      gender: user.gender,
       role: user.role,
       bio: user.bio,
       avatarUrl: user.avatarUrl,

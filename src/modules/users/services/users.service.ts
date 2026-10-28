@@ -58,6 +58,14 @@ export class UsersService {
     return updated!;
   }
 
+  async markVerified(id: string): Promise<void> {
+    await this.usersRepository.update(id, { isVerified: true });
+  }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.usersRepository.update(id, { password: passwordHash });
+  }
+
   async remove(id: string): Promise<{ message: string }> {
     await this.findById(id);
     await this.usersRepository.delete(id);

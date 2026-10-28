@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { UsersService } from '../../users/services/users.service';
 import { OtpService } from '../services/otp.service';
 import { MailService } from '../services/mail.service';
+import { OtpType } from '../entities/otp.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -18,6 +19,8 @@ describe('AuthService', () => {
       findByEmail: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
+      updatePassword: jest.fn().mockResolvedValue(undefined),
+      markVerified: jest.fn().mockResolvedValue(undefined),
     };
 
     jwtService = {
@@ -31,6 +34,7 @@ describe('AuthService', () => {
 
     mailService = {
       sendVerificationOtp: jest.fn().mockResolvedValue(true),
+      sendPasswordResetOtp: jest.fn().mockResolvedValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -48,5 +52,50 @@ describe('AuthService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('forgotPassword', () => {
+    it('should generate OTP and send password reset email if user exists', async () => {
+      usersService.findByEmail!.mockResolvedValue({
+        id: 'user-uuid',
+        email: 'student@uni.edu',
+        firstName: 'Ada',
+      });
+
+      const result = await service.forgotPassword({ email: 'student@uni.edu' });
+
+      expect(usersService.findByEmail).toHaveBeenCalledWith('student@uni.edu');
+      expect(otpService.generateOtp).toHaveBeenCalledWith('student@uni.edu', OtpType.PASSWORD_RESET);
+      expect(mailService.sendPasswordResetOtp).toHaveBeenCalledWith('student@uni.edu', '123456', 'Ada');
+      expect(result.message).toContain('If this email address is registered');
+    });
+
+    it('should return standard message even if user does not exist (enumeration safe)', async () => {
+      usersService.findByEmail!.mockResolvedValue(null);
+
+      const result = await service.forgotPassword({ email: 'nonexistent@uni.edu' });
+
+      expect(otpService.generateOtp).not.toHaveBeenCalled();
+      expect(result.message).toContain('If this email address is registered');
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should verify OTP and update password', async () => {
+      usersService.findByEmail!.mockResolvedValue({
+        id: 'user-uuid',
+        email: 'student@uni.edu',
+      });
+
+      const result = await service.resetPassword({
+        email: 'student@uni.edu',
+        otp: '123456',
+        newPassword: 'BrandNewPassword123',
+      });
+
+      expect(otpService.verifyOtp).toHaveBeenCalledWith('student@uni.edu', '123456', OtpType.PASSWORD_RESET);
+      expect(usersService.updatePassword).toHaveBeenCalled();
+      expect(result.message).toContain('Password reset successful');
+    });
   });
 });
