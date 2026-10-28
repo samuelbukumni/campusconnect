@@ -130,8 +130,9 @@ DB_PASSWORD=your_password
 DB_DATABASE=study_connect_db
 DB_SYNCHRONIZE=true
 JWT_SECRET=super_secret_jwt_key_study_connect_2026
-RESEND_API_KEY=re_your_api_key_here
-MAIL_FROM=onboarding@resend.dev
+SMTP_USER=your_gmail@gmail.com
+SMTP_PASS=your_16_char_google_app_password
+SMTP_FROM=CampusConnect <your_gmail@gmail.com>
 ```
 
 ---
@@ -349,8 +350,9 @@ Under the **Environment** tab of your Render Web Service, add:
 * `DB_DATABASE` = *(From your Render PostgreSQL)*
 * DATABASE_URL = *(From your Render PostgreSQL internal connection string, or set discrete DB_* variables below)*
 * `JWT_SECRET` = *(A secure random secret key)*
-* `RESEND_API_KEY` = *(Your Resend.com API Key)*
-* `MAIL_FROM` = `onboarding@resend.dev`
+* `SMTP_USER` = *(Your Gmail address, e.g. campusconnect.app@gmail.com)*
+* `SMTP_PASS` = *(Your 16-character Google App Password)*
+* `SMTP_FROM` = `CampusConnect <your_gmail@gmail.com>`
 
 ### Step 4: Verify Live API
 * **Health Check:** `https://your-app.onrender.com/api/v1/health`
