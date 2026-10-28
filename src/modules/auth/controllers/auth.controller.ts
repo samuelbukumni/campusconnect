@@ -19,6 +19,7 @@ import { LoginDto } from '../dto/login.dto';
 import { VerifyOtpDto } from '../dto/verify-otp.dto';
 import { ResendOtpDto } from '../dto/resend-otp.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { VerifyPasswordOtpDto } from '../dto/verify-password-otp.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -91,10 +92,42 @@ export class AuthController {
   }
 
   @Public()
+  @Post('forgot-password/resend')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Resend a 6-digit password reset OTP to registered student email (60-second cooldown)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset code redispatched to student email if registered.',
+  })
+  async resendForgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.resendForgotPasswordOtp(forgotPasswordDto);
+  }
+
+  @Public()
+  @Post('forgot-password/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify 6-digit password reset OTP and obtain a temporary reset token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset OTP verified. Returns short-lived resetToken for password update.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or expired OTP code.',
+  })
+  async verifyForgotPassword(@Body() verifyPasswordOtpDto: VerifyPasswordOtpDto) {
+    return this.authService.verifyForgotPasswordOtp(verifyPasswordOtpDto);
+  }
+
+  @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Reset student account password using 6-digit verification code',
+    summary: 'Reset student account password using temporary resetToken or 6-digit verification code',
   })
   @ApiResponse({
     status: 200,
@@ -102,9 +135,19 @@ export class AuthController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid or expired OTP verification code.',
+    description: 'Invalid or expired OTP verification code or reset token.',
   })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Public()
+  @Post('forgot-password/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Alias for reset-password endpoint to accommodate alternative frontend routing',
+  })
+  async resetPasswordAlias(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
 

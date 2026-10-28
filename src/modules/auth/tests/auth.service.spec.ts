@@ -25,6 +25,7 @@ describe('AuthService', () => {
 
     jwtService = {
       sign: jest.fn().mockReturnValue('mock-jwt-token'),
+      verify: jest.fn().mockReturnValue({ sub: 'user-uuid', email: 'student@uni.edu', purpose: 'password_reset' }),
     };
 
     otpService = {
@@ -78,10 +79,62 @@ describe('AuthService', () => {
       expect(otpService.generateOtp).not.toHaveBeenCalled();
       expect(result.message).toContain('If this email address is registered');
     });
+
+    it('should resend password reset OTP', async () => {
+      usersService.findByEmail!.mockResolvedValue({
+        id: 'user-uuid',
+        email: 'student@uni.edu',
+        firstName: 'Ada',
+      });
+
+      const result = await service.resendForgotPasswordOtp({ email: 'student@uni.edu' });
+
+      expect(usersService.findByEmail).toHaveBeenCalledWith('student@uni.edu');
+      expect(result.message).toContain('If this email address is registered');
+    });
+  });
+
+  describe('verifyForgotPasswordOtp', () => {
+    it('should verify code and return resetToken', async () => {
+      usersService.findByEmail!.mockResolvedValue({
+        id: 'user-uuid',
+        email: 'student@uni.edu',
+      });
+
+      const result = await service.verifyForgotPasswordOtp({
+        email: 'student@uni.edu',
+        code: '123456',
+      });
+
+      expect(otpService.verifyOtp).toHaveBeenCalledWith('student@uni.edu', '123456', OtpType.PASSWORD_RESET);
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ sub: 'user-uuid', email: 'student@uni.edu', purpose: 'password_reset' }),
+        { expiresIn: '15m' },
+      );
+      expect(result.resetToken).toBe('mock-jwt-token');
+      expect(result.message).toContain('Code verified successfully');
+    });
   });
 
   describe('resetPassword', () => {
-    it('should verify OTP and update password', async () => {
+    it('should reset password using resetToken', async () => {
+      usersService.findById!.mockResolvedValue({
+        id: 'user-uuid',
+        email: 'student@uni.edu',
+      });
+
+      const result = await service.resetPassword({
+        resetToken: 'mock-jwt-token',
+        newPassword: 'BrandNewPassword123',
+      });
+
+      expect(jwtService.verify).toHaveBeenCalledWith('mock-jwt-token');
+      expect(usersService.findById).toHaveBeenCalledWith('user-uuid');
+      expect(usersService.updatePassword).toHaveBeenCalled();
+      expect(result.message).toContain('Password reset successful');
+    });
+
+    it('should verify OTP and update password directly with email and otp', async () => {
       usersService.findByEmail!.mockResolvedValue({
         id: 'user-uuid',
         email: 'student@uni.edu',

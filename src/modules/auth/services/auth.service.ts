@@ -11,6 +11,7 @@ import { LoginDto } from '../dto/login.dto';
 import { VerifyOtpDto } from '../dto/verify-otp.dto';
 import { ResendOtpDto } from '../dto/resend-otp.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { VerifyPasswordOtpDto } from '../dto/verify-password-otp.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { User } from '../../users/entities/user.entity';
@@ -122,16 +123,74 @@ export class AuthService {
     };
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
-    const normalizedEmail = resetPasswordDto.email.toLowerCase().trim();
-    const user = await this.usersService.findByEmail(normalizedEmail);
+  async resendForgotPasswordOtp(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+    return this.forgotPassword(forgotPasswordDto);
+  }
 
+  async verifyForgotPasswordOtp(
+    verifyPasswordOtpDto: VerifyPasswordOtpDto,
+  ): Promise<{ resetToken: string; message: string }> {
+    const normalizedEmail = verifyPasswordOtpDto.email.toLowerCase().trim();
+    const rawCode = verifyPasswordOtpDto.code || verifyPasswordOtpDto.otp;
+
+    if (!rawCode) {
+      throw new BadRequestException('Verification code is required.');
+    }
+
+    const user = await this.usersService.findByEmail(normalizedEmail);
     if (!user) {
-      throw new BadRequestException('Invalid or expired password reset request.');
+      throw new BadRequestException('Invalid or expired verification code.');
     }
 
     // Verify OTP against PASSWORD_RESET type
-    await this.otpService.verifyOtp(normalizedEmail, resetPasswordDto.otp, OtpType.PASSWORD_RESET);
+    await this.otpService.verifyOtp(normalizedEmail, rawCode, OtpType.PASSWORD_RESET);
+
+    // Issue a signed 15-minute reset token for step 3
+    const resetToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        purpose: 'password_reset',
+      },
+      { expiresIn: '15m' },
+    );
+
+    return {
+      resetToken,
+      message: 'Code verified successfully. You may now reset your password.',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+    let user: User | null = null;
+
+    if (resetPasswordDto.resetToken) {
+      try {
+        const payload = this.jwtService.verify(resetPasswordDto.resetToken);
+        if (payload.purpose !== 'password_reset' || !payload.sub) {
+          throw new BadRequestException('Invalid password reset token.');
+        }
+        user = await this.usersService.findById(payload.sub);
+      } catch (err) {
+        if (err instanceof BadRequestException) {
+          throw err;
+        }
+        throw new BadRequestException('Invalid or expired password reset session. Please request a new code.');
+      }
+    } else if (resetPasswordDto.email && resetPasswordDto.otp) {
+      const normalizedEmail = resetPasswordDto.email.toLowerCase().trim();
+      user = await this.usersService.findByEmail(normalizedEmail);
+      if (!user) {
+        throw new BadRequestException('Invalid or expired password reset request.');
+      }
+      await this.otpService.verifyOtp(normalizedEmail, resetPasswordDto.otp, OtpType.PASSWORD_RESET);
+    } else {
+      throw new BadRequestException('Either a resetToken or both email and otp are required.');
+    }
+
+    if (!user) {
+      throw new BadRequestException('Student account not found.');
+    }
 
     // Hash new password and update
     const salt = await bcrypt.genSalt(10);
