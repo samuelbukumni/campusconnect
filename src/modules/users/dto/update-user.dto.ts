@@ -5,7 +5,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '../entities/user.entity';
+import { UserRole, UserGender } from '../entities/user.entity';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'Ada' })
@@ -32,6 +32,15 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   level?: string;
+
+  @ApiPropertyOptional({
+    enum: UserGender,
+    example: UserGender.FEMALE,
+    description: 'Student gender (MALE or FEMALE)',
+  })
+  @IsOptional()
+  @IsEnum(UserGender, { message: 'Gender must be MALE or FEMALE' })
+  gender?: UserGender;
 
   @ApiPropertyOptional({ enum: UserRole })
   @IsOptional()

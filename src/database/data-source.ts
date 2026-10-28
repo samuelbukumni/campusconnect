@@ -12,6 +12,7 @@ import { Review } from '../modules/reviews/entities/review.entity';
 import { Report } from '../modules/reports/entities/report.entity';
 import { Notification } from '../modules/notifications/entities/notification.entity';
 import { InitialSchema1730000000000 } from './migrations/1730000000000-InitialSchema';
+import { AddGenderToUsers1730000000001 } from './migrations/1730000000001-AddGenderToUsers';
 
 dotenv.config();
 
@@ -44,7 +45,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Report,
     Notification,
   ],
-  migrations: [InitialSchema1730000000000],
+  migrations: [InitialSchema1730000000000, AddGenderToUsers1730000000001],
   migrationsRun: true,
   synchronize: false,
   logging: process.env.DB_LOGGING === 'true',

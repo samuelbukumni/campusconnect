@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '../entities/user.entity';
+import { UserRole, UserGender } from '../entities/user.entity';
 
 export class UserProfileDto {
   @ApiProperty()
@@ -22,6 +22,9 @@ export class UserProfileDto {
 
   @ApiPropertyOptional()
   level?: string;
+
+  @ApiPropertyOptional({ enum: UserGender })
+  gender?: UserGender;
 
   @ApiProperty({ enum: UserRole })
   role: UserRole;

@@ -5,6 +5,11 @@ import {
 } from 'typeorm';
 import { BaseEntity } from '../../../database/base.entity';
 
+export enum UserGender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
 export enum UserRole {
   LEARNER = 'LEARNER',
   TUTOR = 'TUTOR',
@@ -42,6 +47,13 @@ export class User extends BaseEntity {
     default: UserRole.BOTH,
   })
   role: UserRole;
+
+  @Column({
+    type: 'enum',
+    enum: UserGender,
+    nullable: true,
+  })
+  gender?: UserGender;
 
   @Column({ type: 'text', nullable: true })
   bio: string;
