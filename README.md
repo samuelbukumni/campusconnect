@@ -270,6 +270,27 @@ All endpoints are versioned with the `/api/v1` prefix.
 
 ---
 
+---
+
+## 👤 Pre-Seeded Demo Student Account
+
+For immediate testing, frontend integration, and project defense/evaluation, the backend automatically seeds a verified demo account on boot:
+
+| Field | Value | Notes |
+| :--- | :--- | :--- |
+| **Email** | `demo@campusconnect.com` | Primary demo login |
+| **Password** | `CampusConnect2026!` | Pre-hashed with bcrypt (salt rounds: 10) |
+| **First & Last Name** | `Demo Student` | Full name |
+| **Gender** | `FEMALE` | Enforced under `UserGender` enum (`MALE` / `FEMALE`) |
+| **Role** | `BOTH` | Dual-role: Can tutor Calculus & book physics sessions |
+| **Department & Level** | `Computer Engineering` / `300` | Matric Number: `CSE/2023/001` |
+| **Verification Status** | `isVerified: true` | **Pre-verified**: Instant login, no OTP required |
+| **Tutor Rating & Stats** | `4.9 ★` (8 reviews) | 12 sessions given, 6 sessions attended |
+| **Courses to Teach** | `CSC 201`, `MTH 102` | Data Structures & Calculus |
+| **Courses Needing Help**| `PHY 101` | General Physics |
+
+---
+
 ## 🗺 Roadmap & Development Phases
 
 * [x] **Phase 1: Foundation & Authentication** (Completed ✅)

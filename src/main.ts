@@ -4,6 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
+import { seedDemoData } from './database/seeds/demo.seed';
+import { CoursesService } from './modules/courses/services/courses.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -13,7 +15,7 @@ async function bootstrap() {
   const port = configService.get<number>('app.port') || 3000;
   const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
 
-  // Automated Database Migration Check on Startup
+  // Automated Database Migration & Seeding on Startup
   try {
     const dataSource = app.get(DataSource);
     if (dataSource.isInitialized) {
@@ -26,9 +28,21 @@ async function bootstrap() {
       } else {
         logger.log('Database schema is up-to-date. No pending migrations.');
       }
+
+      // 1. Auto-seed Demo Student Account
+      await seedDemoData(dataSource, logger);
+
+      // 2. Auto-seed Default University Courses Catalog
+      try {
+        const coursesService = app.get(CoursesService);
+        await coursesService.seedDefaultCourses();
+        logger.log('University course catalog checked/seeded successfully.');
+      } catch (courseSeedErr: any) {
+        logger.warn(`Course catalog auto-seed skipped: ${courseSeedErr.message}`);
+      }
     }
   } catch (err: any) {
-    logger.error(`Database migration error on startup: ${err.message}`, err.stack);
+    logger.error(`Database startup error: ${err.message}`, err.stack);
   }
 
   // Set global API route prefix
