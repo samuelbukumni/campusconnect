@@ -130,9 +130,8 @@ DB_PASSWORD=your_password
 DB_DATABASE=study_connect_db
 DB_SYNCHRONIZE=true
 JWT_SECRET=super_secret_jwt_key_study_connect_2026
-SMTP_USER=your_gmail@gmail.com
-SMTP_PASS=your_16_char_google_app_password
-SMTP_FROM=CampusConnect <your_gmail@gmail.com>
+BREVO_API_KEY=xkeysib-your_brevo_api_key_here
+BREVO_SENDER_EMAIL=denisfeyisola@gmail.com
 ```
 
 ---
@@ -350,9 +349,8 @@ Under the **Environment** tab of your Render Web Service, add:
 * `DB_DATABASE` = *(From your Render PostgreSQL)*
 * DATABASE_URL = *(From your Render PostgreSQL internal connection string, or set discrete DB_* variables below)*
 * `JWT_SECRET` = *(A secure random secret key)*
-* `SMTP_USER` = *(Your Gmail address, e.g. campusconnect.app@gmail.com)*
-* `SMTP_PASS` = *(Your 16-character Google App Password)*
-* `SMTP_FROM` = `CampusConnect <your_gmail@gmail.com>`
+* `BREVO_API_KEY` = *(Your Brevo API Key starting with xkeysib-...)*
+* `BREVO_SENDER_EMAIL` = `denisfeyisola@gmail.com`
 
 ### Step 4: Verify Live API
 * **Health Check:** `https://your-app.onrender.com/api/v1/health`

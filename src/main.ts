@@ -76,7 +76,7 @@ async function bootstrap() {
 
   // Swagger OpenAPI Documentation
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('StudyConnect API')
+    .setTitle('CampusConnect API')
     .setDescription(
       'RESTful API for The Student Tutoring Application - Peer Tutoring, Study Partners & Material Sharing',
     )
@@ -91,9 +91,10 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(port);
+  const hostUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
   logger.log(`=======================================================`);
-  logger.log(` StudyConnect API is running on: http://localhost:${port}/${apiPrefix}`);
-  logger.log(` Swagger API Docs available at: http://localhost:${port}/docs`);
+  logger.log(` CampusConnect API is running on: ${hostUrl}/${apiPrefix}`);
+  logger.log(` Swagger API Docs available at: ${hostUrl}/docs`);
   logger.log(`=======================================================`);
 }
 

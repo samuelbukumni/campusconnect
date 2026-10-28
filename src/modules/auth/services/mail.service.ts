@@ -4,43 +4,24 @@ import {
   BadGatewayException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import { Transporter } from 'nodemailer';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: Transporter;
-  private readonly fromEmail: string;
+  private readonly apiKey: string | undefined;
+  private readonly senderEmail: string;
+  private readonly senderName: string = 'CampusConnect';
+  private readonly brevoApiUrl = 'https://api.brevo.com/v3/smtp/email';
 
   constructor(private readonly configService: ConfigService) {
-    const smtpUser = this.configService.get<string>('SMTP_USER');
-    const smtpPass = this.configService.get<string>('SMTP_PASS');
-    this.fromEmail =
-      this.configService.get<string>('SMTP_FROM') ||
-      (smtpUser ? `CampusConnect <${smtpUser}>` : 'CampusConnect <no-reply@campusconnect.com>');
+    this.apiKey = this.configService.get<string>('BREVO_API_KEY');
+    this.senderEmail =
+      this.configService.get<string>('BREVO_SENDER_EMAIL') || 'denisfeyisola@gmail.com';
 
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    if (smtpUser && smtpPass) {
-      this.transporter.verify((error) => {
-        if (error) {
-          this.logger.error(`Gmail SMTP Connection Failed: ${error.message}`);
-        } else {
-          this.logger.log(`Gmail SMTP Server connected successfully (${smtpUser})`);
-        }
-      });
+    if (this.apiKey && this.apiKey !== 'xkeysib-your_brevo_api_key_here') {
+      this.logger.log(`Brevo HTTP Email Client initialized successfully (Sender: ${this.senderEmail})`);
     } else {
-      this.logger.warn('SMTP_USER or SMTP_PASS not configured. Outgoing emails will fail.');
+      this.logger.warn('BREVO_API_KEY not configured. Outgoing emails will fail.');
     }
   }
 
@@ -61,22 +42,12 @@ export class MailService {
       </div>
     `;
 
-    try {
-      await this.transporter.sendMail({
-        from: this.fromEmail,
-        to: email,
-        subject: `${otpCode} is your CampusConnect Verification Code`,
-        html: htmlContent,
-      });
-
-      this.logger.log(`Verification OTP email sent successfully to ${email}`);
-      return true;
-    } catch (error: any) {
-      this.logger.error(`Failed to send verification email to ${email}: ${error.message}`, error.stack);
-      throw new BadGatewayException(
-        `Failed to deliver verification email to ${email}. Please ensure the email address is valid.`,
-      );
-    }
+    return this.sendViaBrevo({
+      toEmail: email,
+      toName: studentName,
+      subject: `${otpCode} is your CampusConnect Verification Code`,
+      htmlContent,
+    });
   }
 
   async sendPasswordResetOtp(email: string, otpCode: string, firstName?: string): Promise<boolean> {
@@ -96,20 +67,66 @@ export class MailService {
       </div>
     `;
 
+    return this.sendViaBrevo({
+      toEmail: email,
+      toName: studentName,
+      subject: `${otpCode} is your CampusConnect Password Reset Code`,
+      htmlContent,
+    });
+  }
+
+  private async sendViaBrevo(params: {
+    toEmail: string;
+    toName: string;
+    subject: string;
+    htmlContent: string;
+  }): Promise<boolean> {
+    if (!this.apiKey) {
+      throw new BadGatewayException('Email delivery failed: BREVO_API_KEY is not configured on the server.');
+    }
+
     try {
-      await this.transporter.sendMail({
-        from: this.fromEmail,
-        to: email,
-        subject: `${otpCode} is your CampusConnect Password Reset Code`,
-        html: htmlContent,
+      const response = await fetch(this.brevoApiUrl, {
+        method: 'POST',
+        headers: {
+          'api-key': this.apiKey,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: this.senderName,
+            email: this.senderEmail,
+          },
+          to: [
+            {
+              email: params.toEmail,
+              name: params.toName,
+            },
+          ],
+          subject: params.subject,
+          htmlContent: params.htmlContent,
+        }),
       });
 
-      this.logger.log(`Password reset OTP email sent successfully to ${email}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || response.statusText;
+        this.logger.error(`Brevo API Error (${response.status}): ${errorMessage}`);
+        throw new BadGatewayException(
+          `Failed to deliver email to ${params.toEmail}: ${errorMessage}`,
+        );
+      }
+
+      this.logger.log(`Email delivered successfully via Brevo HTTPS to ${params.toEmail}`);
       return true;
     } catch (error: any) {
-      this.logger.error(`Failed to send password reset email to ${email}: ${error.message}`, error.stack);
+      if (error instanceof BadGatewayException) {
+        throw error;
+      }
+      this.logger.error(`Brevo Network Error: ${error.message}`, error.stack);
       throw new BadGatewayException(
-        `Failed to deliver password reset email to ${email}. Please check the email address and try again.`,
+        `Failed to deliver email to ${params.toEmail}. Please verify the email address or try again.`,
       );
     }
   }
